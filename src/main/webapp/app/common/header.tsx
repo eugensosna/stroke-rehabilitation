@@ -23,6 +23,14 @@ export default function Header() {
               <li className="navbar-item">
                 <Link to="/" className="nav-link">{t('navigation.home')}</Link>
               </li>
+              <li className="navbar-item dropdown">
+                <button type="button" className="nav-link dropdown-toggle" data-bs-toggle="dropdown" id="navbarEntitiesLink"
+                    aria-expanded="false">{t('navigation.entities')}</button>
+                <ul className="dropdown-menu dropdown-menu-end" aria-labelledby="navbarEntitiesLink">
+                  <li><Link to="/games" className="dropdown-item">{t('game.list.headline')}</Link></li>
+                  <li><Link to="/gameStatss" className="dropdown-item">{t('gameStats.list.headline')}</Link></li>
+                </ul>
+              </li>
             </ul>
           </div>
         </nav>

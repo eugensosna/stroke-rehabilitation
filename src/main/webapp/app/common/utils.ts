@@ -70,9 +70,40 @@ export function setYupDefaults() {
   yup.addMethod(yup.NumberSchema, 'emptyToNull', function () {
     return this.transform(emptyToNull).nullable();
   });
+  yup.addMethod(yup.StringSchema, 'numeric', function (precision: number, scale: number) {
+    return this.test('isNumberic', '_', function (value) {
+      const { path, createError } = this;
+      if (!value) {
+        return true;
+      }
+      if (!/^(-?)[0-9]*(\.[0-9]+)?$/.test(value)) {
+        return createError({ path, message: t('valid.numeric.format') });
+      }
+      const numericRegex = new RegExp('^(-?)[0-9]{0,' + precision + '}(\\.[0-9]{0,' + scale + '})?$');
+      if (!numericRegex.test(value)) {
+        return createError({ path, message: t('valid.numeric.digits', { precision, scale }) });
+      }
+      return true;
+    });
+  });
+  yup.addMethod(yup.StringSchema, 'offsetDateTime', function () {
+    return this.test('isOffsetDateTime', '_', function (value) {
+      const { path, createError } = this;
+      if (!value) {
+        return true;
+      }
+      if (!(/^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}(\.[0-9]{1,6})?((\+[0-9]{2}:[0-9]{2})|Z)$/.test(value))) {
+        return createError({ path, message: t('valid.offsetDateTime') });
+      }
+      return true;
+    });
+  });
   yup.setLocale({
     mixed: {
-      required: t('required')    }
+      required: t('required')    },
+    string: {
+      max: t('maxlength')
+    }
   });
 }
 

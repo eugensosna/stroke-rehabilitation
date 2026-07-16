@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router';
 import { Trans, useTranslation } from 'react-i18next';
 import useDocumentTitle from 'app/common/use-document-title';
 import './home.scss';
@@ -16,5 +17,12 @@ export default function Home() {
       <span> </span>
       <a href={process.env.API_PATH + '/swagger-ui.html'} target="_blank">{t('home.index.swagger.link')}</a>.
     </p>
+    <div className="col-md-4 mb-5">
+      <h4 className="mb-3">{t('home.index.exploreEntities')}</h4>
+      <div className="list-group">
+        <Link to="/games" className="list-group-item list-group-item-action">{t('game.list.headline')}</Link>
+        <Link to="/gameStatss" className="list-group-item list-group-item-action">{t('gameStats.list.headline')}</Link>
+      </div>
+    </div>
   </>);
 }

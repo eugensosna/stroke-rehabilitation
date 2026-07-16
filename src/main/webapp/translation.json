@@ -4,7 +4,8 @@
   },
   "navigation": {
     "toggle": "Toggle navigation",
-    "home": "Home"
+    "home": "Home",
+    "entities": "Entities"
   },
   "home": {
     "index": {
@@ -13,13 +14,116 @@
       "swagger": {
         "text": "Swagger is",
         "link": "available here"
-      }
+      },
+      "exploreEntities": "Explore your entities"
     }
   },
   "error": {
     "page": {
       "headline": "Error",
       "message": "The page you are looking for is not available right now."
+    }
+  },
+  "game": {
+    "list": {
+      "headline": "Games",
+      "createNew": "Create new Game",
+      "empty": "No Games could be found.",
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "add": {
+      "headline": "Add Game",
+      "back": "Back to list"
+    },
+    "id": {
+      "label": "Id"
+    },
+    "name": {
+      "label": "Name"
+    },
+    "statistic": {
+      "label": "Statistic"
+    },
+    "user": {
+      "label": "User"
+    },
+    "edit": {
+      "headline": "Edit Game",
+      "back": "Back to list"
+    },
+    "create": {
+      "success": "Game was created successfully."
+    },
+    "update": {
+      "success": "Game was updated successfully."
+    },
+    "delete": {
+      "success": "Game was removed successfully."
+    }
+  },
+  "gameStats": {
+    "list": {
+      "headline": "Game Statses",
+      "createNew": "Create new Game Stats",
+      "empty": "No Game Statses could be found.",
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "add": {
+      "headline": "Add Game Stats",
+      "back": "Back to list"
+    },
+    "id": {
+      "label": "Id"
+    },
+    "start": {
+      "label": "Start"
+    },
+    "duration": {
+      "label": "Duration"
+    },
+    "edit": {
+      "headline": "Edit Game Stats",
+      "back": "Back to list"
+    },
+    "game": {
+      "statistic": {
+        "referenced": "This entity is still referenced by Game {{id}} via field Statistic."
+      }
+    },
+    "create": {
+      "success": "Game Stats was created successfully."
+    },
+    "update": {
+      "success": "Game Stats was updated successfully."
+    },
+    "delete": {
+      "success": "Game Stats was removed successfully."
+    }
+  },
+  "Exists": {
+    "game": {
+      "statistic": "This Game Stats is already referenced by another Game."
+    }
+  },
+  "select": {
+    "empty": {
+      "label": "Please select"
+    }
+  },
+  "delete": {
+    "confirm": "Do you really want to delete this element? This cannot be undone."
+  },
+  "operation": {
+    "success": "Your operation was successful."
+  },
+  "maxlength": "Your value must have a length of less then ${max} characters.",
+  "valid": {
+    "offsetDateTime": "Please provide a valid date with offset, for example \"2026-01-23T14:55:00+01:00\".",
+    "numeric": {
+      "format": "Please provide a valid numeric number.",
+      "digits": "Your provided value is out of the valid range: <{{precision}} digits>.<{{scale}} digits> expected."
     }
   }
 }
