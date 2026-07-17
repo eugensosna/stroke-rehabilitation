@@ -1,3 +1,8 @@
+logging:
+  console:
+    enabled: true
+  level:
+    ROOT: info
 spring:
   datasource:
     url: ${JDBC_DATABASE_URL:jdbc:postgresql://localhost:5432/stroke}
@@ -23,7 +28,7 @@ spring:
 error:
   handling:
     http-status-in-json-response: true
-    exception-logging: NO_LOGGING
+    exception-logging: with-stacktrace
     full-stacktrace-http-statuses: 5xx
     log-levels:
       5xx: ERROR
@@ -31,3 +36,14 @@ error:
       GameStatisticUnique: GAME_STATISTIC_UNIQUE
 springdoc:
   pathsToMatch: /api/**
+jwt:
+  secret: test-secret-key-for-testing-only-do-not-use-in-production
+  refresh-token-expiration-second: 700
+  expiration: 3600000
+  access-token-expiration-second: 300
+stroke:
+  cors:
+    allowed-origins: "*"
+  
+ 
+

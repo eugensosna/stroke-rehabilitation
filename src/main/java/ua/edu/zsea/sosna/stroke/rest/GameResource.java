@@ -20,61 +20,65 @@ import ua.edu.zsea.sosna.stroke.service.GameService;
 import ua.edu.zsea.sosna.stroke.service.GameStatsService;
 import ua.edu.zsea.sosna.stroke.service.auth.UserService;
 
-
 @RestController
 @RequestMapping(value = "/api/games", produces = MediaType.APPLICATION_JSON_VALUE)
 public class GameResource {
 
-    private final GameService gameService;
-    private final GameStatsService gameStatsService;
-    private final UserService userService;
+	private final GameService gameService;
+	private final GameStatsService gameStatsService;
+	private final UserService userService;
 
-    public GameResource(final GameService gameService, final GameStatsService gameStatsService,
-            final UserService userService) {
-        this.gameService = gameService;
-        this.gameStatsService = gameStatsService;
-        this.userService = userService;
-    }
+	public GameResource(final GameService gameService, final GameStatsService gameStatsService,
+			final UserService userService) {
+		this.gameService = gameService;
+		this.gameStatsService = gameStatsService;
+		this.userService = userService;
+	}
 
-    @GetMapping
-    public ResponseEntity<List<GameDTO>> getAllGames() {
-        return ResponseEntity.ok(gameService.findAll());
-    }
+	@GetMapping
+	public ResponseEntity<List<GameDTO>> getAllGames() {
+		return ResponseEntity.ok(gameService.findAll());
+	}
 
-    @GetMapping("/{id}")
-    public ResponseEntity<GameDTO> getGame(@PathVariable(name = "id") final Long id) {
-        return ResponseEntity.ok(gameService.get(id));
-    }
+	@GetMapping("/test")
+	public ResponseEntity<String> test() {
+		return ResponseEntity.ok("ok");
+	}
 
-    @PostMapping
-    @ApiResponse(responseCode = "201")
-    public ResponseEntity<Long> createGame(@RequestBody @Valid final GameDTO gameDTO) {
-        final Long createdId = gameService.create(gameDTO);
-        return new ResponseEntity<>(createdId, HttpStatus.CREATED);
-    }
+	@GetMapping("/{id}")
+	public ResponseEntity<GameDTO> getGame(@PathVariable(name = "id") final Long id) {
+		return ResponseEntity.ok(gameService.get(id));
+	}
 
-    @PutMapping("/{id}")
-    public ResponseEntity<Long> updateGame(@PathVariable(name = "id") final Long id,
-            @RequestBody @Valid final GameDTO gameDTO) {
-        gameService.update(id, gameDTO);
-        return ResponseEntity.ok(id);
-    }
+	@PostMapping
+	@ApiResponse(responseCode = "201")
+	public ResponseEntity<Long> createGame(@RequestBody @Valid final GameDTO gameDTO) {
+		final Long createdId = gameService.create(gameDTO);
+		return new ResponseEntity<>(createdId, HttpStatus.CREATED);
+	}
 
-    @DeleteMapping("/{id}")
-    @ApiResponse(responseCode = "204")
-    public ResponseEntity<Void> deleteGame(@PathVariable(name = "id") final Long id) {
-        gameService.delete(id);
-        return ResponseEntity.noContent().build();
-    }
+	@PutMapping("/{id}")
+	public ResponseEntity<Long> updateGame(@PathVariable(name = "id") final Long id,
+			@RequestBody @Valid final GameDTO gameDTO) {
+		gameService.update(id, gameDTO);
+		return ResponseEntity.ok(id);
+	}
 
-    @GetMapping("/statisticValues")
-    public ResponseEntity<Map<Long, Long>> getStatisticValues() {
-        return ResponseEntity.ok(gameStatsService.getGameStatsValues());
-    }
+	@DeleteMapping("/{id}")
+	@ApiResponse(responseCode = "204")
+	public ResponseEntity<Void> deleteGame(@PathVariable(name = "id") final Long id) {
+		gameService.delete(id);
+		return ResponseEntity.noContent().build();
+	}
 
-    @GetMapping("/userValues")
-    public ResponseEntity<Map<Long, Long>> getUserValues() {
-        return ResponseEntity.ok(userService.getUserValues());
-    }
+	@GetMapping("/statisticValues")
+	public ResponseEntity<Map<Long, Long>> getStatisticValues() {
+		return ResponseEntity.ok(gameStatsService.getGameStatsValues());
+	}
+
+	@GetMapping("/userValues")
+	public ResponseEntity<Map<Long, Long>> getUserValues() {
+		return ResponseEntity.ok(userService.getUserValues());
+	}
 
 }

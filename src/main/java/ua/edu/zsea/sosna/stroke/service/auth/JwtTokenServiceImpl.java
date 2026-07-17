@@ -1,12 +1,8 @@
 package ua.edu.zsea.sosna.stroke.service.auth;
 
-import java.nio.charset.StandardCharsets;
 import java.time.Instant;
-import java.time.OffsetDateTime;
 import java.util.HashMap;
 import java.util.Map;
-
-import javax.crypto.SecretKey;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -16,12 +12,10 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
-import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
 
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
-
 
 @Slf4j
 @Service
@@ -36,8 +30,7 @@ public class JwtTokenServiceImpl implements jwtService {
 	private Long refreshTokenExpirationSeconds;
 
 	private final Algorithm algorithm;
-    private final JWTVerifier verifier;
-
+	private final JWTVerifier verifier;
 
 	public JwtTokenServiceImpl(@Value("${jwt.secret}") String secretKey) {
 		super();
@@ -45,7 +38,6 @@ public class JwtTokenServiceImpl implements jwtService {
 		this.algorithm = Algorithm.HMAC512(secretKey);
 		this.verifier = JWT.require(algorithm).build();
 	}
-
 
 	// ── Generate Tokens ──
 	@Override
@@ -57,8 +49,7 @@ public class JwtTokenServiceImpl implements jwtService {
 
 	private String buildToken(Map<String, Object> claims, String subject, Long expiration) {
 		var now = Instant.now();
-		var builder = JWT.create().withSubject(subject).withIssuedAt(now)
-				.withExpiresAt(now.plusSeconds(expiration));
+		var builder = JWT.create().withSubject(subject).withIssuedAt(now).withExpiresAt(now.plusSeconds(expiration));
 		// Dynamically attach all claims from the map
 		if (claims != null) {
 			claims.forEach((key, value) -> {
@@ -79,8 +70,8 @@ public class JwtTokenServiceImpl implements jwtService {
 	@Override
 	public String generateRefreshToken(UserDetails user) {
 		Map<String, Object> claims = new HashMap<>();
-        claims.put("type", "refresh");
-        return buildToken(claims, user.getUsername(), refreshTokenExpirationSeconds);
+		claims.put("type", "refresh");
+		return buildToken(claims, user.getUsername(), refreshTokenExpirationSeconds);
 	}
 
 	@Override
@@ -88,23 +79,27 @@ public class JwtTokenServiceImpl implements jwtService {
 		// TODO Auto-generated method stub
 		return this.accessTokenExpirationSeconds;
 	}
+
+	@Override
 	public DecodedJWT validateToken(final String token, final HttpServletResponse response) {
-        try {
-            return verifier.verify(token);
-        } catch (final JWTVerificationException verificationEx) {
-        	
-            log.warn("token invalid: {}", verificationEx.getMessage());
-            return null;
-        }
-    }
-	
-	 public Claim extractAllClaims(String token) {
-		   var claims = JWT.decode(token)
-	        return Jwts.parser()
-	                .verifyWith(getSigningKey())
-	                .build()
-	                .parseSignedClaims(token)
-	                .getPayload();
-	    }
+		try {
+			return verifier.verify(token);
+		} catch (final JWTVerificationException verificationEx) {
+
+			log.warn("token invalid: {}", verificationEx.getMessage());
+			return null;
+		}
+	}
+
+	@Override
+	public boolean isTokenExpired(DecodedJWT decodedToken) {
+		boolean result = false;
+		var expiresAt = decodedToken.getExpiresAtAsInstant();
+		if (expiresAt != null) {
+			result = expiresAt.isBefore(Instant.now());
+		}
+
+		return result;
+	}
 
 }
