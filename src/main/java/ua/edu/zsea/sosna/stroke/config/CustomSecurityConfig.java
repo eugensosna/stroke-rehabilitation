@@ -46,13 +46,8 @@ public class CustomSecurityConfig {
 				.authorizeHttpRequests(authz -> {
 //					authz.anyRequest().authenticated();
 
-					authz.requestMatchers("/api/auth/login").permitAll();
-					authz.requestMatchers("/api/auth/register").permitAll();
-					authz.requestMatchers("/api/auth/test").permitAll();
-					authz.requestMatchers("/api/auth**").permitAll();
-
-					authz.requestMatchers("/index.*").permitAll();
-//					authz.requestMatchers("/api/**").authenticated();
+					authz.requestMatchers("/api/auth/**").permitAll();
+					authz.requestMatchers("/api/**").authenticated();
 					authz.anyRequest().permitAll();
 				})
 				.csrf(csrf-> csrf.disable())

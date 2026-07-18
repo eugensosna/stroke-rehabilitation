@@ -106,8 +106,6 @@ public class UserService {
 
 //        AuthResponse.builder().accessToken(accessToken).
 		return AuthResponse.builder().accessToken(accessToken).refreshToken(refreshToken).expiresIn(expiresIn / 1000) // seconds
-				.user(User.builder().id(user.getId()).email(user.getEmail()).fullName(user.getFullName())
-						.role(user.getRole()).build())
 				.build();
 	}
 

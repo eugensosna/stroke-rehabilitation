@@ -9,7 +9,8 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 
-@Data
+@Setter
+@Getter
 //@NoArgsConstructor
 public class UserApiRegisterRequestDto {
 	String email;

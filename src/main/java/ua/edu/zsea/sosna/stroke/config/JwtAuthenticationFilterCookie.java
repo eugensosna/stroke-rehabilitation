@@ -11,11 +11,13 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.util.WebUtils;
 
 import com.auth0.jwt.exceptions.JWTDecodeException;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
@@ -27,7 +29,8 @@ import ua.edu.zsea.sosna.stroke.util.CustomConstans;
 @Component
 @Slf4j
 @AllArgsConstructor
-public class JwtAuthenticationFilter extends OncePerRequestFilter {
+public class JwtAuthenticationFilterCookie extends OncePerRequestFilter {
+	
 	private final jwtService jwtService;
 	private final UserDetailsService userDetailsService;
 
@@ -35,14 +38,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
 			throws ServletException, IOException {
 
-		if (SecurityContextHolder.getContext().getAuthentication() != null) {
-			filterChain.doFilter(request, response);
-			return;
-		}
+		String authHeader = null;
 
-		final String authHeader = request.getHeader("Authorization");
+		  var cookie    =  WebUtils.getCookie(request, CustomConstans.COOCKIE_TOKEN_NAME);
+		  if (cookie!= null) {
+			  authHeader = cookie.getValue();
+		  }
 
-		if (authHeader == null || !authHeader.startsWith(CustomConstans.BEARER_HEADER_AUTH_NAME)) {
+		if (authHeader == null || !authHeader.isBlank()) {
 			filterChain.doFilter(request, response);
 			return;
 		}
@@ -54,6 +57,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 			var decJWT = jwtService.validateToken(jwtToken, response);
 			if (decJWT == null) {
 				log.error("Invalid to validate token {} for request {}", jwtToken, request.getContextPath());
+				response.addCookie(new Cookie(CustomConstans.COOCKIE_TOKEN_NAME, ""));
 				filterChain.doFilter(request, response);
 				return;
 			}
@@ -68,7 +72,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 			}
 
 		} catch (JWTDecodeException e) {
-			log.debug("JWT extraction failed: {}", e.getMessage());
+			log.error("JWT extraction failed from cookie: {}", e.getMessage());
+			response.addCookie(new Cookie(CustomConstans.COOCKIE_TOKEN_NAME, ""));
 			filterChain.doFilter(request, response);
 			return;
 		}
