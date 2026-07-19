@@ -51,6 +51,7 @@ public class AuthentificationResource {
 	@PostMapping("/login")
 	@Transactional
 	public ResponseEntity<AuthResponse> login(@RequestBody UserLoginRequest loginUser) {
+		log.info("start login for user: {}", loginUser.email());
 		var result = userService.login(loginUser);
 		ResponseCookie cookieTocken = ResponseCookie.from("user-token", result.accessToken()).httpOnly(true) // Protects
 																												// against
@@ -61,9 +62,13 @@ public class AuthentificationResource {
 				.maxAge(7 * 24 * 60 * 60) // Expires in 7 days (in seconds)
 				.sameSite("Lax") // Protects against CSRF attacks
 				.build();
+		log.info("login is successful");
+		// return
+		// ResponseEntity.ok().header(org.springframework.http.HttpHeaders.SET_COOKIE,
+		// cookieTocken.toString())
+		// .body(result);
+		return ResponseEntity.ok().body(result);
 
-		return ResponseEntity.ok().header(org.springframework.http.HttpHeaders.SET_COOKIE, cookieTocken.toString())
-				.body(result);
 
 	}
 

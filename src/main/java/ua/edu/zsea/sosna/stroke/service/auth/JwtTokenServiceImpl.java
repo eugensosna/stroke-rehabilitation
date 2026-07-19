@@ -23,10 +23,10 @@ public class JwtTokenServiceImpl implements jwtService {
 	@Value("${jwt.secret}")
 	private String secretKey;
 
-	@Value("${jwt.access-token-expiration-second}")
+	@Value("${jwt.access-token-expiration-second:-600}")
 	private Long accessTokenExpirationSeconds;
 
-	@Value("${jwt.refresh-token-expiration-second}")
+	@Value("${jwt.refresh-token-expiration-second:-36000}")
 	private Long refreshTokenExpirationSeconds;
 
 	private final Algorithm algorithm;
