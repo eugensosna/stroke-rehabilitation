@@ -24,7 +24,7 @@ import ua.edu.zsea.sosna.stroke.model.Roles;
 import ua.edu.zsea.sosna.stroke.model.auth.AuthResponse;
 import ua.edu.zsea.sosna.stroke.model.auth.UserApiRegisterRequest;
 import ua.edu.zsea.sosna.stroke.model.auth.UserLoginRequest;
-import ua.edu.zsea.sosna.stroke.model.auth.UserRegisterRequest;
+import ua.edu.zsea.sosna.stroke.model.auth.UserNewInitial;
 import ua.edu.zsea.sosna.stroke.repos.UserRepository;
 import ua.edu.zsea.sosna.stroke.repos.AccesTockenRepository;
 import ua.edu.zsea.sosna.stroke.util.CustomCollectors;
@@ -65,7 +65,10 @@ public class UserService {
         return result;
 	}
 
-	public AuthResponse register(UserRegisterRequest user) {
+	public AuthResponse register(UserNewInitial user) {
+		
+		
+		
 		var newItem = new User();
 		newItem.setEmail(user.email());
 		newItem.setFullName(user.fullname());
@@ -78,7 +81,7 @@ public class UserService {
 	
 
 	public AuthResponse register(UserApiRegisterRequest user) {
-		var newItem = UserRegisterRequest.builder().email(user.email())
+		var newItem = UserNewInitial.builder().email(user.email())
 				.fullname(user.fullname())
 				.password(user.password())
 				.role(Roles.USER.name())			

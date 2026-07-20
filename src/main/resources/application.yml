@@ -1,8 +1,10 @@
+
 logging:
   console:
     enabled: true
   level:
-    ROOT: info
+    org.springframework.security: DEBUG
+    org.springframework.security.web.FilterChainProxy: DEBUG
 spring:
   datasource:
     url: ${JDBC_DATABASE_URL:jdbc:postgresql://localhost:5432/stroke}
@@ -44,6 +46,15 @@ jwt:
 stroke:
   cors:
     allowed-origins: "*"
-  
- 
+  init:
+    users:
+      - email: admin
+        password: admin
+        role: ADMIN
+      - email: user@user.com
+        password: admin
+        role: USER
+
+
+
 

@@ -4,6 +4,6 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Builder;
 
 @Builder
-public record UserRegisterRequest(@NotNull String fullname, @NotNull String email, String password, String role) {
+public record UserNewInitial(String fullname, @NotNull String email, String password, String role) {
 
 }
