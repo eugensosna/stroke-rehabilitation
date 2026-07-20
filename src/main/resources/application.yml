@@ -1,4 +1,3 @@
-
 logging:
   console:
     enabled: true
@@ -45,7 +44,7 @@ jwt:
   access-token-expiration-second: 300
 stroke:
   cors:
-    allowed-origins: "*"
+    allowed-origins: "http://localhost:5174, http://localhost:8080"
   init:
     users:
       - email: admin

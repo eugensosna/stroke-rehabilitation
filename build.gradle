@@ -29,7 +29,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation('com.auth0:java-jwt:4.5.1')
     runtimeOnly('org.postgresql:postgresql')
-    // implementation('io.github.wimdeblauwe:error-handling-spring-boot-starter:5.1.1')
+    implementation('io.github.wimdeblauwe:error-handling-spring-boot-starter:5.1.1')
     implementation('org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.3')
     compileOnly('org.projectlombok:lombok')
     annotationProcessor('org.projectlombok:lombok')

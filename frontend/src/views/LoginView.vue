@@ -2,6 +2,7 @@
 import { ref } from 'vue';
 import { useAuthStore } from '../store/auth';
 import { type LoginCredentials } from '../types';
+import axios from 'axios';
 
 
 // const router = useRouter();
@@ -12,18 +13,30 @@ const authStore = useAuthStore();
 async function handleLogin() {
     if (!email.value.trim()) {
 
-    }
 
-    try {
-        console.log(email.value, password.value);
+
+    }
+    console.log(email.value, password.value);
+
         const credentials: LoginCredentials = {
             email: email.value,
             password: password.value
         };
+
+    try {
+
+        const client = axios.create({
+            baseURL: 'http://localhost:8080/api',
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+        let responce = await client.post('/auth/login', credentials);
+        console.log(responce.status);
+
         await authStore.login(credentials);
         // router.push("root");
-    } catch {
-        console.error('Login failed');
+    } catch (e) {
+        console.error('Login failed', e);
     }
 
 }

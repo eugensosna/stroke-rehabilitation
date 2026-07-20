@@ -4,6 +4,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -18,6 +19,7 @@ import ua.edu.zsea.sosna.stroke.model.auth.UserApiRegisterRequestDto;
 import ua.edu.zsea.sosna.stroke.model.auth.UserLoginRequest;
 import ua.edu.zsea.sosna.stroke.service.auth.UserService;
 
+// @CrossOrigin(origins = "*")
 @RestController
 @RequestMapping(value = "/api/auth", produces = MediaType.APPLICATION_JSON_VALUE)
 @Slf4j
@@ -30,6 +32,16 @@ public class AuthentificationResource {
 	public ResponseEntity<String> get(){
 		return ResponseEntity.ok("ok");
 	}
+
+
+	
+	
+	@GetMapping("/test")
+	public ResponseEntity<String> testGet () {
+		return ResponseEntity.ok("ok");
+		
+	}
+
 	
 	@PostMapping("/test")
 	public ResponseEntity<UserApiRegisterRequestDto> testPost (@RequestBody UserApiRegisterRequestDto user) {

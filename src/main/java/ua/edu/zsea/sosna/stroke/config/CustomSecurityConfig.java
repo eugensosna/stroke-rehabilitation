@@ -40,17 +40,18 @@ public class CustomSecurityConfig {
 	public SecurityFilterChain securityFilterChain(final HttpSecurity http) {
 
 		var result = http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+				.cors(cors -> cors.configurationSource(corsConfigurationSource()))
 				.authorizeHttpRequests(authz -> {
-//					authz.anyRequest().authenticated();
+					// authz.anyRequest().authenticated();
 
 					authz.requestMatchers("/api/auth/**").permitAll();
 					authz.requestMatchers("/api/**").authenticated();
 					authz.anyRequest().permitAll();
 				})
-				.csrf(csrf-> csrf.disable())
+				.csrf(csrf -> csrf.disable())
 				.build();
 		return result;
-//	return result;
+		// return result;
 
 	}
 
@@ -60,6 +61,7 @@ public class CustomSecurityConfig {
 		if (corsAllowesOrigins != null && !corsAllowesOrigins.isBlank()) {
 			corsToSet = corsAllowesOrigins;
 		}
+		log.info("set cors to {}", corsToSet);
 		CorsConfiguration configuration = new CorsConfiguration();
 		configuration.setAllowedOrigins(List.of(corsToSet));
 		configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH"));
