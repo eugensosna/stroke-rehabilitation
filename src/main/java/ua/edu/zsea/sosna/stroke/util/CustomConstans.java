@@ -1,7 +1,5 @@
 package ua.edu.zsea.sosna.stroke.util;
 
-import org.springframework.beans.factory.annotation.Value;
-
 public class CustomConstans {
 
 //	@Value("${stroke.header-auth-name:-Bearer  }")

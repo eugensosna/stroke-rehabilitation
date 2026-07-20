@@ -46,7 +46,7 @@ public class UserService {
 	 * = userRepository; }
 	 */
 	public Map<Long, Long> getUserValues() {
-		return userRepository.findAll(Sort.by("id")).stream()
+		return userRepository.findAll(Sort.by(User::getId)).stream()
 				.collect(CustomCollectors.toSortedMap(User::getId, User::getId));
 	}
 	@Transactional

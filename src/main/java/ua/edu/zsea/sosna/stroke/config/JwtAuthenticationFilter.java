@@ -3,7 +3,6 @@ package ua.edu.zsea.sosna.stroke.config;
 import java.io.IOException;
 import java.time.Instant;
 
-import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -19,7 +18,6 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import ua.edu.zsea.sosna.stroke.service.auth.jwtService;
 import ua.edu.zsea.sosna.stroke.util.CustomConstans;

@@ -1,7 +1,6 @@
 package ua.edu.zsea.sosna.stroke.model.auth;
 
 import lombok.Builder;
-import ua.edu.zsea.sosna.stroke.domain.User;
 import ua.edu.zsea.sosna.stroke.util.CustomConstans;
 
 @Builder

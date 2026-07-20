@@ -29,7 +29,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation('com.auth0:java-jwt:4.5.1')
     runtimeOnly('org.postgresql:postgresql')
-    implementation('io.github.wimdeblauwe:error-handling-spring-boot-starter:5.1.1')
+    // implementation('io.github.wimdeblauwe:error-handling-spring-boot-starter:5.1.1')
     implementation('org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.3')
     compileOnly('org.projectlombok:lombok')
     annotationProcessor('org.projectlombok:lombok')
@@ -51,20 +51,21 @@ node {
 }
 
 tasks.register('npmRunBuild', NpmTask) {
-    args = ['run', 'build']
-    dependsOn npmInstall
+    // args = ['run', 'build']
+    args = ['install']
+    // dependsOn npmInstall
 
-    inputs.files(fileTree('node_modules'))
-    inputs.files(fileTree('src/main/webapp'))
-    inputs.file('.env')
-    inputs.file('package.json')
-    inputs.file('tsconfig.json')
-    inputs.file('webpack.config.js')
-    outputs.dir(layout.buildDirectory.dir('resources/main/static'))
+    // inputs.files(fileTree('node_modules'))
+    // inputs.files(fileTree('src/main/webapp'))
+    // inputs.file('.env')
+    // inputs.file('package.json')
+    // inputs.file('tsconfig.json')
+    // inputs.file('webpack.config.js')
+    // outputs.dir(layout.buildDirectory.dir('resources/main/static'))
 }
 
 processResources {
-    dependsOn npmRunBuild
+    // dependsOn npmRunBuild
 }
 
 tasks.withType(Test) {

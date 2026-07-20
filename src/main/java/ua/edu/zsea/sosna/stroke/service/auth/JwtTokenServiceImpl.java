@@ -76,7 +76,6 @@ public class JwtTokenServiceImpl implements jwtService {
 
 	@Override
 	public Long getAccessTokenExpiration() {
-		// TODO Auto-generated method stub
 		return this.accessTokenExpirationSeconds;
 	}
 

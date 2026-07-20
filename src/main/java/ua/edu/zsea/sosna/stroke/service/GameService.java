@@ -31,7 +31,7 @@ public class GameService {
     }
 
     public List<GameDTO> findAll() {
-        final List<Game> games = gameRepository.findAll(Sort.by("id"));
+        final List<Game> games = gameRepository.findAll(Sort.by(Game::getId));
         return games.stream()
                 .map(game -> mapToDTO(game, new GameDTO()))
                 .toList();

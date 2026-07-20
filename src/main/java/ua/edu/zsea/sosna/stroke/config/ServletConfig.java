@@ -6,7 +6,6 @@ import org.springframework.boot.web.servlet.ServletContextInitializer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import jakarta.servlet.ServletContainerInitializer;
 import jakarta.servlet.SessionTrackingMode;
 
 @Configuration

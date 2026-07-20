@@ -26,7 +26,7 @@ public class GameStatsService {
     }
 
     public List<GameStatsDTO> findAll() {
-        final List<GameStats> gameStatses = gameStatsRepository.findAll(Sort.by("id"));
+        final List<GameStats> gameStatses = gameStatsRepository.findAll(Sort.by(GameStats::getId));
         return gameStatses.stream()
                 .map(gameStats -> mapToDTO(gameStats, new GameStatsDTO()))
                 .toList();
@@ -72,7 +72,7 @@ public class GameStatsService {
     }
 
     public Map<Long, Long> getGameStatsValues() {
-        return gameStatsRepository.findAll(Sort.by("id"))
+        return gameStatsRepository.findAll(Sort.by(GameStats::getId))
                 .stream()
                 .collect(CustomCollectors.toSortedMap(GameStats::getId, GameStats::getId));
     }

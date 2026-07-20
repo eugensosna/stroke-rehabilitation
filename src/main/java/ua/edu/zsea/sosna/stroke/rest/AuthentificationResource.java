@@ -17,25 +17,14 @@ import ua.edu.zsea.sosna.stroke.model.auth.UserApiRegisterRequest;
 import ua.edu.zsea.sosna.stroke.model.auth.UserApiRegisterRequestDto;
 import ua.edu.zsea.sosna.stroke.model.auth.UserLoginRequest;
 import ua.edu.zsea.sosna.stroke.service.auth.UserService;
-import ua.edu.zsea.sosna.stroke.service.auth.jwtService;
 
 @RestController
 @RequestMapping(value = "/api/auth", produces = MediaType.APPLICATION_JSON_VALUE)
 @Slf4j
-//@AllArgsConstructor
+@AllArgsConstructor
 public class AuthentificationResource {
-	private jwtService jwtService;
 	private UserService userService;
 	
-	
-	
-	
-	public AuthentificationResource(ua.edu.zsea.sosna.stroke.service.auth.jwtService jwtService,
-			UserService userService) {
-		super();
-		this.jwtService = jwtService;
-		this.userService = userService;
-	}
 
 	@GetMapping
 	public ResponseEntity<String> get(){
@@ -53,15 +42,15 @@ public class AuthentificationResource {
 	public ResponseEntity<AuthResponse> login(@RequestBody UserLoginRequest loginUser) {
 		log.info("start login for user: {}", loginUser.email());
 		var result = userService.login(loginUser);
-		ResponseCookie cookieTocken = ResponseCookie.from("user-token", result.accessToken()).httpOnly(true) // Protects
-																												// against
-																												// XSS
-																												// attacks
-				.secure(true) // Ensures cookie is only sent over HTTPS
-				.path("/") // Available everywhere on the domain
-				.maxAge(7 * 24 * 60 * 60) // Expires in 7 days (in seconds)
-				.sameSite("Lax") // Protects against CSRF attacks
-				.build();
+		// ResponseCookie cookieTocken = ResponseCookie.from("user-token", result.accessToken()).httpOnly(true) // Protects
+		// 																										// against
+		// 																										// XSS
+		// 																										// attacks
+		// 		.secure(true) // Ensures cookie is only sent over HTTPS
+		// 		.path("/") // Available everywhere on the domain
+		// 		.maxAge(7 * 24 * 60 * 60) // Expires in 7 days (in seconds)
+		// 		.sameSite("Lax") // Protects against CSRF attacks
+		// 		.build();
 		log.info("login is successful");
 		// return
 		// ResponseEntity.ok().header(org.springframework.http.HttpHeaders.SET_COOKIE,
