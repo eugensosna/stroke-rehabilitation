@@ -13,7 +13,7 @@ export default defineConfig({
       "@": fileURLToPath(new URL("./src", import.meta.url)),
     },
   },
-  /*
+
   server: {
     port: 5173,
     proxy: {
@@ -25,7 +25,12 @@ export default defineConfig({
             console.log("proxy error", err);
           });
           proxy.on("proxyReq", (proxyReq, req, _res) => {
-            console.log("Sending Request to the Target:", req.method, req.url);
+            console.log(
+              "Sending Request to the Target:",
+              req.method,
+              req.url,
+              proxyReq.path,
+            );
           });
           proxy.on("proxyRes", (proxyRes, req, _res) => {
             console.log(
@@ -37,8 +42,5 @@ export default defineConfig({
         },
       },
     },
-  },*/
-  server: {
-    port: 5173,
-  }
+  },
 });
