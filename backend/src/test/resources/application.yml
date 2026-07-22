@@ -1,0 +1,25 @@
+error:
+  handling:
+    http-status-in-json-response: true
+    exception-logging: NO_LOGGING
+    full-stacktrace-http-statuses: 5xx
+    log-levels:
+      5xx: ERROR
+    codes:
+      GameStatisticUnique: GAME_STATISTIC_UNIQUE
+springdoc:
+  pathsToMatch: /api/**
+jwt:
+  secret: test-secret-key-for-testing-only-do-not-use-in-production
+  refresh-token-expiration-second: 700
+  expiration: 3600000
+  access-token-expiration-second: 300
+stroke:
+  cors:
+    allowed-origins: "*"
+  
+spring:
+  profiles:
+    active:
+    - "test" 
+
