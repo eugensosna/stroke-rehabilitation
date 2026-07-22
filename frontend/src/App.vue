@@ -4,6 +4,7 @@ import LoginView from './views/LoginView.vue';
 </script>
 
 <template>
-    <LoginView/>
+    <RouterView />
+    <!-- <LoginView/> -->
   
 </template>
