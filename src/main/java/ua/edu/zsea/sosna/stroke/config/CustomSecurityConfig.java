@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -43,6 +44,7 @@ public class CustomSecurityConfig {
 				.cors(cors -> cors.configurationSource(corsConfigurationSource()))
 				.authorizeHttpRequests(authz -> {
 					// authz.anyRequest().authenticated();
+					authz.requestMatchers(HttpMethod.OPTIONS, "/api/**" ).permitAll();
 
 					authz.requestMatchers("/api/auth/**").permitAll();
 					authz.requestMatchers("/api/**").authenticated();
@@ -64,7 +66,7 @@ public class CustomSecurityConfig {
 		log.info("set cors to {}", corsToSet);
 		CorsConfiguration configuration = new CorsConfiguration();
 		configuration.setAllowedOrigins(List.of(corsToSet));
-		configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH"));
+		configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
 		configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
 		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 		source.registerCorsConfiguration("/**", configuration);

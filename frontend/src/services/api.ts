@@ -1,7 +1,7 @@
 import axios from 'axios'
-
+const baseURL =  '/api';
 export const  api = axios.create({
-  baseURL: (import.meta.env.VITE_API_BASE_URL as string | "http://localhost:8080/api") ?? '/api',
+  baseURL: baseURL,
   timeout: 10_000,
   headers: { 'Content-Type': 'application/json' }
 })
@@ -40,7 +40,7 @@ api.interceptors.response.use(
     return response
   },
   (error) => {
-    console.error('Axios Error Object:', error.response?.status, error.response?.data || error.message);
+    console.error('Axios Error Object:',  error.response?.status, error.response?.data || error.message);
     if (error.response?.status === 401) {
       sessionStorage.removeItem('token')
       sessionStorage.removeItem('user')

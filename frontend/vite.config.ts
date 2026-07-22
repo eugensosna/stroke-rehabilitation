@@ -1,13 +1,14 @@
 import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
 import { fileURLToPath, URL } from "node:url";
+import vueDevTools from "vite-plugin-vue-devtools";
 
 const apiProxyTarget =
   process.env.VITE_API_PROXY_TARGET || "http://localhost:8080";
 console.log(`API Proxy Target: ${apiProxyTarget}`);
 
 export default defineConfig({
-  plugins: [vue()],
+  plugins: [vue(), vueDevTools()],
   resolve: {
     alias: {
       "@": fileURLToPath(new URL("./src", import.meta.url)),
@@ -20,6 +21,7 @@ export default defineConfig({
       "/api": {
         target: apiProxyTarget,
         changeOrigin: true,
+        secure: false,
         configure: (proxy, _options) => {
           proxy.on("error", (err, _req, _res) => {
             console.log("proxy error", err);

@@ -76,7 +76,8 @@ public class JwtTokenServiceImpl implements jwtService {
 
 	@Override
 	public Long getAccessTokenExpiration() {
-		return this.accessTokenExpirationSeconds;
+		var now = Instant.now();
+		return now.plusSeconds(this.accessTokenExpirationSeconds).toEpochMilli();
 	}
 
 	@Override

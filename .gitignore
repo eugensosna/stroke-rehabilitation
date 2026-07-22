@@ -44,3 +44,4 @@ bin/
 /dist/
 /nbdist/
 /.nb-gradle/
+.env
