@@ -50,9 +50,11 @@ stroke:
       - email: admin@admin.com
         password: admin123
         role: ADMIN
+        fullname: Admin Admin
       - email: user@user.com
         password: user123
         role: USER
+        fullname: User User
 
 
 
