@@ -24,7 +24,7 @@ build/
 
 # Gradle
 .gradle/
-gradle/
+# gradle/
 
 # Node.js / Vue.js
 node_modules/
