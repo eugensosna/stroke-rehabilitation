@@ -1,5 +1,9 @@
 import axios from 'axios'
-const baseURL =  '/api';
+let baseURL =  (import.meta.env.VITE_API_BASE_URL as string | undefined) ??''+ '/api';
+if (!baseURL.endsWith('/api')) {
+  baseURL += '/api';
+}
+console.log('API Base URL:', baseURL);
 export const  api = axios.create({
   baseURL: baseURL,
   timeout: 10_000,
