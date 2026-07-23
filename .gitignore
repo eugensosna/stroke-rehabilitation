@@ -57,3 +57,4 @@ priv/
 CLAUDE.md
 .superpowers/
 coverage/
+**/bin/**
