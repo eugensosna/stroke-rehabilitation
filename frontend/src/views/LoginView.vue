@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { ref } from "vue";
-import { type LoginCredentials } from "../types";
+import { RouteNames, type LoginCredentials } from "../types";
 import { AuthStore } from "../store/auth_store";
 import { api } from "../services/api";
+import router from "../router";
 
 
 // const router = useRouter();
@@ -24,7 +25,7 @@ async function handleLogin() {
 
   try {
     await authStore.login(credentials);
-    // router.push("root");
+    router.push(RouteNames.HOME);
   } catch (e) {
     console.error("Login failed", e);
   }
@@ -74,7 +75,7 @@ async function handleTest() {
 
 <template>
   <div class="login-page">
-    <form @submit="handleLogin" novalidate>
+    <form @submit.prevent="handleLogin" novalidate>
       <label>E-mail</label>
       <input id="login-email" v-model="email" type="email" />
       <label for="login-password">password</label>

@@ -6,20 +6,18 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import jakarta.annotation.PostConstruct;
-import ua.edu.zsea.sosna.stroke.service.InstalationProperties;
-import ua.edu.zsea.sosna.stroke.service.auth.UserService;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import ua.edu.zsea.sosna.stroke.domain.User;
 import ua.edu.zsea.sosna.stroke.model.Roles;
 import ua.edu.zsea.sosna.stroke.model.auth.UserNewInitial;
 import ua.edu.zsea.sosna.stroke.repos.UserRepository;
+import ua.edu.zsea.sosna.stroke.service.InstalationProperties;
 
 @Service
 @AllArgsConstructor
 @Slf4j
 public class InitData {
-	private final UserService userService;
 	private final UserRepository userRepository;
 	private final PasswordEncoder passwordEncoder;
 	private final InstalationProperties instalationProperties;

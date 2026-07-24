@@ -1,15 +1,14 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import viteLogo from '../assets/vite.svg'
-import heroImg from '../assets/hero.png'
-import vueLogo from '../assets/vue.svg'
+import router from '../router'
 
 const count = ref(0)
+router.push("login");
 </script>
 
 <template>
   <footer>
-    <a href = "/login" target="_blank" rel="noopener noreferrer">LOGIN</a>
+    <a v-on:click.prevent="handleLogin" href="/login" target="_blank" rel="noopener noreferrer">LOGIN</a>
     <ul>
       <li>
         <a href="https://vitejs.dev" target="_blank" rel="noopener noreferrer">

@@ -1,15 +1,13 @@
 package ua.edu.zsea.sosna.stroke.service.auth;
 
-import java.time.Instant;
-import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.Map;
+
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -17,7 +15,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 import ua.edu.zsea.sosna.stroke.domain.AccesTocken;
 import ua.edu.zsea.sosna.stroke.domain.User;
 import ua.edu.zsea.sosna.stroke.model.Roles;
@@ -25,8 +22,8 @@ import ua.edu.zsea.sosna.stroke.model.auth.AuthResponse;
 import ua.edu.zsea.sosna.stroke.model.auth.UserApiRegisterRequest;
 import ua.edu.zsea.sosna.stroke.model.auth.UserLoginRequest;
 import ua.edu.zsea.sosna.stroke.model.auth.UserNewInitial;
-import ua.edu.zsea.sosna.stroke.repos.UserRepository;
 import ua.edu.zsea.sosna.stroke.repos.AccesTockenRepository;
+import ua.edu.zsea.sosna.stroke.repos.UserRepository;
 import ua.edu.zsea.sosna.stroke.util.CustomCollectors;
 
 @Service
