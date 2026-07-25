@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <defs>
+    <linearGradient id="clean-blue" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#3A86FF" />
+      <stop offset="100%" stop-color="#00F5D4" />
+    </linearGradient>
+  </defs>
+
+  <g transform="translate(-8, -8)">
+    <!-- Outer Heart Path -->
+    <path d="M 24 35 C 12 25, 8 17, 14 9.8 C 19.2 3.8, 24 11, 24 11 C 24 11, 28.8 3.8, 34 9.8 C 40 17, 36 25, 24 35 Z" 
+          fill="none" 
+          stroke="url(#clean-blue)" 
+          stroke-width="3" 
+          stroke-linecap="round" 
+          stroke-linejoin="round" />
+    
+    <!-- Central Spinal Nodes -->
+    <circle cx="24" cy="13.8" r="1.8" fill="#3A86FF" />
+    <circle cx="24" cy="19.4" r="1.8" fill="#20B2AA" />
+    <circle cx="24" cy="25.0" r="1.8" fill="#00F5D4" />
+  </g>
+</svg>

@@ -1,13 +1,12 @@
-<script setup lang="ts">
-import LoginView from './views/LoginView.vue';
-
-// import LoginView from './views/LoginView.vue';
-
-</script>
-
 <template>
-    <RouterView />
-    <LoginView />
-    <!-- <LoginView/> -->
-  
+  <ThemeProvider>
+    <SidebarProvider>
+      <RouterView />
+    </SidebarProvider>
+  </ThemeProvider>
 </template>
+
+<script setup lang="ts">
+import ThemeProvider from './components/layout/ThemeProvider.vue'
+import SidebarProvider from './components/layout/SidebarProvider.vue'
+</script>

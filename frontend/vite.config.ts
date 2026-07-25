@@ -1,22 +1,29 @@
-import { defineConfig } from "vite";
-import vue from "@vitejs/plugin-vue";
-import { fileURLToPath, URL } from "node:url";
-import vueDevTools from "vite-plugin-vue-devtools";
+import { fileURLToPath, URL } from 'node:url'
+
+import { defineConfig } from 'vite'
+import vue from '@vitejs/plugin-vue'
+import vueJsx from '@vitejs/plugin-vue-jsx'
+import vueDevTools from 'vite-plugin-vue-devtools'
+
 
 const apiProxyTarget =
   process.env.VITE_API_PROXY_TARGET || "http://localhost:8080";
-console.log(`API Proxy Target: ${apiProxyTarget}`);
 
+// https://vite.dev/config/
 export default defineConfig({
-  plugins: [vue(), vueDevTools()],
+  plugins: [
+    vue(),
+    vueJsx(),
+    vueDevTools(),
+  ],
   resolve: {
     alias: {
-      "@": fileURLToPath(new URL("./src", import.meta.url)),
+      '@': fileURLToPath(new URL('./src', import.meta.url))
     },
   },
-
-  server: {
+    server: {
     port: 5173,
+    sourcemapIgnoreList: false,
     proxy: {
       "/api": {
         target: apiProxyTarget,
@@ -45,4 +52,4 @@ export default defineConfig({
       },
     },
   },
-});
+})
