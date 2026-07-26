@@ -28,6 +28,9 @@ spring:
   docker:
     compose:
       lifecycle-management: start-only
+  config:
+    import:
+    - "optional:file:.env[.properties]"
 error:
   handling:
     http-status-in-json-response: true

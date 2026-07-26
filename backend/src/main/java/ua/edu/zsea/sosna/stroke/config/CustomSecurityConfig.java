@@ -1,5 +1,8 @@
 package ua.edu.zsea.sosna.stroke.config;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -41,17 +44,14 @@ public class CustomSecurityConfig {
 	public SecurityFilterChain securityFilterChain(final HttpSecurity http) {
 
 		var result = http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-				.cors(cors -> cors.configurationSource(corsConfigurationSource()))
-				.authorizeHttpRequests(authz -> {
+				.cors(cors -> cors.configurationSource(corsConfigurationSource())).authorizeHttpRequests(authz -> {
 					// authz.anyRequest().authenticated();
-					authz.requestMatchers(HttpMethod.OPTIONS, "/api/**" ).permitAll();
+					authz.requestMatchers(HttpMethod.OPTIONS, "/api/**").permitAll();
 
 					authz.requestMatchers("/api/auth/**").permitAll();
 					authz.requestMatchers("/api/**").authenticated();
 					authz.anyRequest().permitAll();
-				})
-				.csrf(csrf -> csrf.disable())
-				.build();
+				}).csrf(csrf -> csrf.disable()).build();
 		return result;
 		// return result;
 
@@ -63,9 +63,15 @@ public class CustomSecurityConfig {
 		if (corsAllowesOrigins != null && !corsAllowesOrigins.isBlank()) {
 			corsToSet = corsAllowesOrigins;
 		}
-		log.info("set cors to {}", corsToSet);
+
+		List<String> corsList = Arrays.stream(corsToSet.split(",")).map(String::trim).toList();
+		if (corsList.size() == 0) {
+			corsList.add(corsToSet);
+		}
+
+		log.info("set cors to {}", corsList.toString());
 		CorsConfiguration configuration = new CorsConfiguration();
-		configuration.setAllowedOrigins(List.of(corsToSet));
+		configuration.setAllowedOrigins(corsList);
 		configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
 		configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
 		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

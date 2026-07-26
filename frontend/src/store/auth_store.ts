@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
-import type { AuthResponse, LoginCredentials } from "../types";
+import type { AuthResponse,  LoginCredentials } from "../types";
 import { AuthService } from "../services/auth_service";
 
 export const AuthStore = defineStore("auth", () => {
@@ -9,7 +9,7 @@ export const AuthStore = defineStore("auth", () => {
   const isAuthenticated = computed(() => {
     let result = false;
     if (!authToken.value) {
-      let authTokenFromStorage: AuthResponse | null = sessionStorage.getItem(
+      const authTokenFromStorage: AuthResponse | null = sessionStorage.getItem(
         "authToken",
       )
         ? JSON.parse(sessionStorage.getItem("authToken") as string)
@@ -20,8 +20,8 @@ export const AuthStore = defineStore("auth", () => {
     }
     if (authToken.value) {
       if (authToken.value.accessToken) {
-        let now = Date.now() / 1000;
-        let expiresAt = authToken.value.expiresIn;
+        const now = Date.now() / 1000;
+        const expiresAt = authToken.value.expiresIn;
         result = now < expiresAt;
       }
       // result = true;
@@ -47,5 +47,16 @@ export const AuthStore = defineStore("auth", () => {
     authToken.value = JSON.parse(sessionStorage.getItem("authToken") as string);
   }
 
-  return { authToken, isAuthenticated, login, logout };
+  const userName = computed(() =>  {
+    let result:string = "Anonym";
+    if (isAuthenticated.value) {
+      result= "User";
+
+    }
+
+    return result;
+
+  });
+
+  return { authToken, isAuthenticated, login, logout, userName };
 });

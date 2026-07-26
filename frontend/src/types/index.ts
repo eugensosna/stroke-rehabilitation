@@ -1,3 +1,4 @@
+import type { Ref } from "vue"
 
 export interface LoginCredentials {
   email: string
@@ -22,4 +23,11 @@ export const RoutePaths ={
   ABOUT: '/about',
   USER_PROFILE: '/user/:id',
   NOT_FOUND: '/:pathMatch(.*)*',
+}
+export interface AuthStoreInterface{
+  authToken: Ref<AuthResponse | null>
+  isAuthenticated: boolean,
+  login: void,
+  logout: void
+
 }
