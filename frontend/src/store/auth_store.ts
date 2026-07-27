@@ -20,9 +20,13 @@ export const AuthStore = defineStore("auth", () => {
     }
     if (authToken.value) {
       if (authToken.value.accessToken) {
+        result = true;
+
+/*
         const now = Date.now() / 1000;
         const expiresAt = authToken.value.expiresIn;
         result = now < expiresAt;
+*/
       }
       // result = true;
     }

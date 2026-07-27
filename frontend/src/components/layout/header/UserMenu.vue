@@ -6,12 +6,13 @@
     >
     <!-- FIXME: add if auth and user name -->
       <span class="mr-3 overflow-hidden rounded-full h-11 w-11">
-        <img src="/images/user/anonym.png" alt="User" />
+        <img v-if="!isAuthenticated" src="/images/user/anonym.png" alt="User" />
+        <img v-else src="/images/user/user_no_photo.svg" alt="User" />
       </span>
 
 
-      <span v-if="!isAuthenticated" class="block mr-1 font-medium text-theme-sm">Anonym</span>
-      <span v-else class="block mr-1 font-medium text-theme-sm">{{ userName }}</span>
+
+      <span class="block mr-1 font-medium text-theme-sm">{{ userName }}</span>
 
       <ChevronDownIcon :class="{ 'rotate-180': dropdownOpen }" />
     </button>
