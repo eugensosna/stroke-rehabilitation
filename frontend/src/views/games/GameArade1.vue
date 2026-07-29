@@ -2,15 +2,63 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { Hands, type Results as HandResults } from '@mediapipe/hands'
 import { Camera } from '@mediapipe/camera_utils'
+import AdminLayout from '@/components/layout/AdminLayout.vue';
+import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue';
+import { WristTracker, type MotionResult, type Point2D } from '@/composables/WristTracker';
+
 
 const currentPageTitle = ref("Video test");
 const videoRef = ref<HTMLVideoElement | null>(null)
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 const errorMessage = ref<string | null>(null)
 const isRunning = ref(false)
+const capturedImage = ref<string | null>(null)
 
 let cameraInstance: Camera | null = null
 let handsInstance: Hands | null = null
+const isStreaming = ref<boolean>(false);
+
+const startCamera = async () => {
+  startTracking();
+
+}
+
+// 1. Створюємо колбеки
+const handleMotionComplete = (result: MotionResult) => {
+  console.log("Рух завершено:", {
+    швидкість_тривалість_мс: result.durationMs,
+    довжина_руху: result.distance.toFixed(4),
+    звідки: result.startPoint,
+    куди: result.endPoint
+  });
+};
+
+const handleStationary = (point: Point2D) => {
+  console.log("Рука не рухається або тремтить (раз на секунду):", point);
+};
+
+// 2. Ініціалізуємо трекер
+const tracker: WristTracker = new WristTracker(
+  handleMotionComplete,
+  handleStationary,
+  0.03, // Порог для початку руху
+  0.008 // Порог для фільтрації тремтіння
+);
+
+
+
+
+function printSessionStatistics() {
+  console.log("--- СТАТИСТИКА РУХІВ ЗАП'ЯСТКА ---");
+  console.log("Всього рухів зроблено:", tracker.getHistory().length);
+  console.log("Найдовший рух:", tracker.getLongestMotion());
+  console.log("Найшвидший рух:", tracker.getFastestMotion());
+  console.log("Середня довжина руху:", tracker.getAverageDistance().toFixed(4));
+  console.log("Середня швидкість руху:", tracker.getAverageSpeed().toFixed(6));
+}
+
+
+
 
 const startTracking = async () => {
   errorMessage.value = null
@@ -22,6 +70,9 @@ const startTracking = async () => {
   const canvasCtx = canvasElement.getContext('2d')
 
   if (!canvasCtx) return
+  if (!isStreaming.value) {
+    isStreaming.value = true;
+  }
 
   // 1. Initialize MediaPipe Hands
   handsInstance = new Hands({
@@ -37,13 +88,18 @@ const startTracking = async () => {
     minTrackingConfidence: 0.5
   })
 
+
+
+
   // 2. Handle detection results
   handsInstance.onResults((results: HandResults) => {
+
     // Match canvas size to video feed dimensions
     if (canvasElement.width !== videoElement.videoWidth || canvasElement.height !== videoElement.videoHeight) {
       canvasElement.width = videoElement.videoWidth || 640
       canvasElement.height = videoElement.videoHeight || 480
     }
+
 
     // Clear and draw the live video frame onto the canvas
     canvasCtx.save()
@@ -56,6 +112,9 @@ const startTracking = async () => {
         // Landmark 9 is the middle finger MCP (base knuckle),
         // Landmark 0 is the wrist. Averaging them gives a stable center point of the palm.
         const wrist = landmarks[0]
+        if (wrist) {
+          tracker.update(wrist.x, wrist.y);
+        }
         const middleFingerMCP = landmarks[9]
 
         const centerX = ((wrist.x + middleFingerMCP.x) / 2) * canvasElement.width
@@ -77,7 +136,9 @@ const startTracking = async () => {
     }
 
     canvasCtx.restore()
-  })
+  });
+
+
 
   // 3. Setup MediaPipe Camera utility to feed video frames into the Hands model
   try {
@@ -99,10 +160,31 @@ const startTracking = async () => {
   }
 }
 
+const captureFrame = () => {
+  if (!videoRef.value || !canvasRef.value) return
+
+  const videoElement = videoRef.value
+  const canvasElement = canvasRef.value
+  const canvasCtx = canvasElement.getContext('2d')
+
+  if (!canvasCtx) return
+
+  if (canvasElement.width !== videoElement.videoWidth || canvasElement.height !== videoElement.videoHeight) {
+    canvasElement.width = videoElement.videoWidth || 640
+    canvasElement.height = videoElement.videoHeight || 480
+  }
+
+  canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height)
+  canvasCtx.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height)
+
+  capturedImage.value = canvasElement.toDataURL('image/png')
+}
+
 const stopTracking = () => {
   if (cameraInstance) {
     cameraInstance.stop()
     cameraInstance = null
+    isStreaming.value = false;
   }
   if (handsInstance) {
     handsInstance.close()
@@ -110,6 +192,14 @@ const stopTracking = () => {
   }
   isRunning.value = false
 }
+
+const stopCamera = () => {
+  stopTracking();
+  // Коли потрібно вивести статистику (наприклад, кнопкою або в кінці сеансу):
+  printSessionStatistics();
+
+}
+
 
 onMounted(() => {
   startTracking()
