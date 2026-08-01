@@ -4,12 +4,18 @@ import { Hands, type Results as HandResults } from '@mediapipe/hands'
 import { Camera } from '@mediapipe/camera_utils'
 import AdminLayout from '@/components/layout/AdminLayout.vue';
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue';
-import { WristTracker, type MotionResult, type Point2D } from '@/composables/WristTracker';
+import { WristTracker } from '@/composables/WristTracker';
+import { GameArkade } from '@/composables/useGame';
+import type { MotionResult, Point2D } from '@/types/game';
 
 
 const currentPageTitle = ref("Video test");
 const videoRef = ref<HTMLVideoElement | null>(null)
 const canvasRef = ref<HTMLCanvasElement | null>(null)
+const CANVAS_WIDTH = 440
+const CANVAS_HEIGHT = 500
+let game: GameArkade | null = null;
+let ctx: CanvasRenderingContext2D | null = null;
 const errorMessage = ref<string | null>(null)
 const isRunning = ref(false)
 const capturedImage = ref<string | null>(null)
@@ -31,10 +37,18 @@ const handleMotionComplete = (result: MotionResult) => {
     звідки: result.startPoint,
     куди: result.endPoint
   });
+
+  if (game) {
+    game.movePaddle(result.endPoint);
+  }
+
 };
 
 const handleStationary = (point: Point2D) => {
   console.log("Рука не рухається або тремтить (раз на секунду):", point);
+  if (game) {
+    game.movePaddle(point);
+  }
 };
 
 // 2. Ініціалізуємо трекер
@@ -73,6 +87,8 @@ const startTracking = async () => {
   if (!isStreaming.value) {
     isStreaming.value = true;
   }
+  game = new GameArkade(canvasElement);
+  ctx = canvasCtx;
 
   // 1. Initialize MediaPipe Hands
   handsInstance = new Hands({
@@ -94,17 +110,19 @@ const startTracking = async () => {
   // 2. Handle detection results
   handsInstance.onResults((results: HandResults) => {
 
-    // Match canvas size to video feed dimensions
-    if (canvasElement.width !== videoElement.videoWidth || canvasElement.height !== videoElement.videoHeight) {
-      canvasElement.width = videoElement.videoWidth || 640
-      canvasElement.height = videoElement.videoHeight || 480
+    // Keep the canvas at a fixed display size so it does not change after startup.
+    if (canvasElement.width !== CANVAS_WIDTH || canvasElement.height !== CANVAS_HEIGHT) {
+      canvasElement.width = CANVAS_WIDTH
+      canvasElement.height = CANVAS_HEIGHT
     }
 
+    /*
+        // Clear and draw the live video frame onto the canvas
+        canvasCtx.save()
+        canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height)
+        canvasCtx.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height)
+    */
 
-    // Clear and draw the live video frame onto the canvas
-    canvasCtx.save()
-    canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height)
-    canvasCtx.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height)
 
     // If hands are detected, loop through them and draw a red circle around the center of the hand
     if (results.multiHandLandmarks) {
@@ -115,6 +133,7 @@ const startTracking = async () => {
         if (wrist) {
           tracker.update(wrist.x, wrist.y);
         }
+        /*
         const middleFingerMCP = landmarks[9]
 
         const centerX = ((wrist.x + middleFingerMCP.x) / 2) * canvasElement.width
@@ -126,16 +145,21 @@ const startTracking = async () => {
         const handSpan = Math.sqrt(dx * dx + dy * dy)
         const radius = handSpan * 1.2 // Scale circle to fit the palm area
 
-        // Draw the red circle
-        canvasCtx.beginPath()
-        canvasCtx.arc(centerX, centerY, radius, 0, 2 * Math.PI)
-        canvasCtx.lineWidth = 4
-        canvasCtx.strokeStyle = '#ff0000'
-        canvasCtx.stroke()
+
+                // Draw the red circle
+                canvasCtx.beginPath()
+                canvasCtx.arc(centerX, centerY, radius, 0, 2 * Math.PI)
+                canvasCtx.lineWidth = 4
+                canvasCtx.strokeStyle = '#ff0000'
+                canvasCtx.stroke()
+                */
+
       }
     }
 
-    canvasCtx.restore()
+
+
+    // canvasCtx.restore()
   });
 
 
@@ -169,9 +193,9 @@ const captureFrame = () => {
 
   if (!canvasCtx) return
 
-  if (canvasElement.width !== videoElement.videoWidth || canvasElement.height !== videoElement.videoHeight) {
-    canvasElement.width = videoElement.videoWidth || 640
-    canvasElement.height = videoElement.videoHeight || 480
+  if (canvasElement.width !== CANVAS_WIDTH || canvasElement.height !== CANVAS_HEIGHT) {
+    canvasElement.width = CANVAS_WIDTH
+    canvasElement.height = CANVAS_HEIGHT
   }
 
   canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height)
@@ -202,7 +226,16 @@ const stopCamera = () => {
 
 
 onMounted(() => {
-  startTracking()
+  startTracking();
+
+  const loop = () => {
+    if (game && ctx) {
+      game.updatePhysics();
+      game.draw(ctx);
+      requestAnimationFrame(loop);
+    }
+  };
+  loop();
 })
 
 onUnmounted(() => {
@@ -225,7 +258,7 @@ onUnmounted(() => {
         <video ref="videoRef" autoplay playsinline muted class="hidden-video"></video>
 
         <!-- Canvas displaying the active video stream feed -->
-        <canvas ref="canvasRef" class="webcam-canvas"></canvas>
+        <canvas ref="canvasRef" class="webcam-canvas" width="440" height="500"></canvas>
 
         <div class="controls">
           <button v-if="isStreaming" @click="captureFrame">Capture Frame</button>
@@ -256,9 +289,9 @@ onUnmounted(() => {
 }
 
 .webcam-canvas {
-  width: 100%;
-  max-width: 640px;
-  border-radius: 8px;
+  /* width: 100%; */
+
+  /* border-radius: 8px; */
   background-color: #000;
 }
 
