@@ -28,3 +28,26 @@ export interface GameState {
   playing: boolean
   bricks: Brick[]
 }
+
+export interface Point2D {
+  x: number;
+  y: number;
+  timestamp: number; // у мілісекундах
+}
+
+
+export interface Point3D {
+  x: number;
+  y: number;
+  z: number;
+  timestamp: number; // у мілісекундах
+}
+
+
+export interface MotionResult {
+  startPoint: Point2D;
+  endPoint: Point2D;
+  durationMs: number;
+  distance: number;       // довжина руху
+  speed: number;          // швидкість (distance / durationMs)
+}

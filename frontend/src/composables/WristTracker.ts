@@ -1,16 +1,5 @@
-export interface Point2D {
-  x: number;
-  y: number;
-  timestamp: number; // у мілісекундах
-}
+import type { MotionResult, Point2D } from "@/types/game";
 
-export interface MotionResult {
-  startPoint: Point2D;
-  endPoint: Point2D;
-  durationMs: number;
-  distance: number;       // довжина руху
-  speed: number;          // швидкість (distance / durationMs)
-}
 
 export class WristTracker {
   private isMoving: boolean = false;

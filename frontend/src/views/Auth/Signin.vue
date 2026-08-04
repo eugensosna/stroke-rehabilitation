@@ -27,7 +27,8 @@
               <div>
                 <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-5">
                   <button
-                    class="inline-flex items-center justify-center gap-3 py-3 text-sm font-normal text-gray-700 transition-colors bg-gray-100 rounded-lg px-7 hover:bg-gray-200 hover:text-gray-800 dark:bg-white/5 dark:text-white/90 dark:hover:bg-white/10">
+                    class="inline-flex items-center justify-center gap-3 py-3 text-sm font-normal text-gray-700 transition-colors bg-gray-100 rounded-lg px-7 hover:bg-gray-200 hover:text-gray-800 dark:bg-white/5 dark:text-white/90 dark:hover:bg-white/10"
+                    disabled>
                     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                       <path
                         d="M18.7511 10.1944C18.7511 9.47495 18.6915 8.94995 18.5626 8.40552H10.1797V11.6527H15.1003C15.0011 12.4597 14.4654 13.675 13.2749 14.4916L13.2582 14.6003L15.9087 16.6126L16.0924 16.6305C17.7788 15.1041 18.7511 12.8583 18.7511 10.1944Z"
@@ -47,7 +48,7 @@
                   <button
                     class="inline-flex items-center justify-center gap-3 py-3 text-sm font-normal text-gray-700 transition-colors bg-gray-100 rounded-lg px-7 hover:bg-gray-200 hover:text-gray-800 dark:bg-white/5 dark:text-white/90 dark:hover:bg-white/10">
                     <svg width="21" class="fill-current" height="20" viewBox="0 0 21 20" fill="none"
-                      xmlns="http://www.w3.org/2000/svg">
+                      xmlns="http://www.w3.org/2000/svg" disabled>
                       <path
                         d="M15.6705 1.875H18.4272L12.4047 8.75833L19.4897 18.125H13.9422L9.59717 12.4442L4.62554 18.125H1.86721L8.30887 10.7625L1.51221 1.875H7.20054L11.128 7.0675L15.6705 1.875ZM14.703 16.475H16.2305L6.37054 3.43833H4.73137L14.703 16.475Z" />
                     </svg>
@@ -107,8 +108,8 @@
                           <div class="relative">
                             <input v-model="keepLoggedIn" type="checkbox" id="keepLoggedIn" class="sr-only" />
                             <div :class="keepLoggedIn
-                                ? 'border-brand-500 bg-brand-500'
-                                : 'bg-transparent border-gray-300 dark:border-gray-700'
+                              ? 'border-brand-500 bg-brand-500'
+                              : 'bg-transparent border-gray-300 dark:border-gray-700'
                               " class="mr-3 flex h-5 w-5 items-center justify-center rounded-md border-[1.25px]">
                               <span :class="keepLoggedIn ? '' : 'opacity-0'">
                                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none"
