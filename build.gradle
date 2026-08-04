@@ -7,6 +7,10 @@ allprojects {
         mavenCentral()
     }
 }
+dependencies {
+    developmentOnly('org.springframework.boot:spring-boot-docker-compose')
+
+}
 
 node {
     version = '24.15.0'

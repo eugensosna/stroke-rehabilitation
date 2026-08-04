@@ -1,20 +1,21 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, reactive } from 'vue'
 import { Hands, type Results as HandResults } from '@mediapipe/hands'
 import { Camera } from '@mediapipe/camera_utils'
 import AdminLayout from '@/components/layout/AdminLayout.vue';
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue';
 import { WristTracker } from '@/composables/WristTracker';
-import { GameArkade } from '@/composables/useGame';
+import { GameArcade } from '@/composables/useGame';
 import type { MotionResult, Point2D } from '@/types/game';
 
 
 const currentPageTitle = ref("Video test");
 const videoRef = ref<HTMLVideoElement | null>(null)
 const canvasRef = ref<HTMLCanvasElement | null>(null)
+const canvasVideoRef = ref<HTMLCanvasElement | null>(null)
 const CANVAS_WIDTH = 440
 const CANVAS_HEIGHT = 500
-let game: GameArkade | null = null;
+let game: GameArcade | null = null;
 let ctx: CanvasRenderingContext2D | null = null;
 const errorMessage = ref<string | null>(null)
 const isRunning = ref(false)
@@ -24,12 +25,34 @@ let cameraInstance: Camera | null = null
 let handsInstance: Hands | null = null
 const isStreaming = ref<boolean>(false);
 
-const startCamera = async () => {
-  startTracking();
+// Логіка для перетягування вікна (Draggable)
+const windowPosition = reactive<{ x: number; y: number }>({ x: 300, y: 100 })
+let isDragging = false
+const dragOffset = reactive<{ x: number; y: number }>({ x: 0, y: 0 })
 
+const startDrag = (event: MouseEvent): void => {
+  isDragging = true
+  dragOffset.x = event.clientX - windowPosition.x
+  dragOffset.y = event.clientY - windowPosition.y
+
+  window.addEventListener('mousemove', onDrag)
+  window.addEventListener('mouseup', stopDrag)
 }
 
-// 1. Створюємо колбеки
+const onDrag = (event: MouseEvent): void => {
+  if (!isDragging) return
+  windowPosition.x = event.clientX - dragOffset.x
+  windowPosition.y = event.clientY - dragOffset.y
+}
+
+const stopDrag = (): void => {
+  isDragging = false
+  window.removeEventListener('mousemove', onDrag)
+  window.removeEventListener('mouseup', stopDrag)
+}
+
+
+
 const handleMotionComplete = (result: MotionResult) => {
   console.log("Рух завершено:", {
     швидкість_тривалість_мс: result.durationMs,
@@ -39,6 +62,7 @@ const handleMotionComplete = (result: MotionResult) => {
   });
 
   if (game) {
+    console.log("Рух завершено, рухаємо палицю:", result.endPoint);
     game.movePaddle(result.endPoint);
   }
 
@@ -48,6 +72,8 @@ const handleStationary = (point: Point2D) => {
   console.log("Рука не рухається або тремтить (раз на секунду):", point);
   if (game) {
     game.movePaddle(point);
+  } else {
+    console.log("Game instance not initialized yet.");
   }
 };
 
@@ -55,8 +81,8 @@ const handleStationary = (point: Point2D) => {
 const tracker: WristTracker = new WristTracker(
   handleMotionComplete,
   handleStationary,
-  0.03, // Порог для початку руху
-  0.008 // Порог для фільтрації тремтіння
+  0.03, // Поріг для початку руху
+  0.008 // Поріг для фільтрації тремтіння
 );
 
 
@@ -87,7 +113,7 @@ const startTracking = async () => {
   if (!isStreaming.value) {
     isStreaming.value = true;
   }
-  game = new GameArkade(canvasElement);
+  game = new GameArcade(canvasElement);
   ctx = canvasCtx;
 
   // 1. Initialize MediaPipe Hands
@@ -101,7 +127,8 @@ const startTracking = async () => {
     maxNumHands: 2,
     modelComplexity: 1,
     minDetectionConfidence: 0.5,
-    minTrackingConfidence: 0.5
+    minTrackingConfidence: 0.5,
+    selfieMode: true
   })
 
 
@@ -109,6 +136,7 @@ const startTracking = async () => {
 
   // 2. Handle detection results
   handsInstance.onResults((results: HandResults) => {
+    let wristPosition: Point2D | null = null;
 
     // Keep the canvas at a fixed display size so it does not change after startup.
     if (canvasElement.width !== CANVAS_WIDTH || canvasElement.height !== CANVAS_HEIGHT) {
@@ -124,40 +152,45 @@ const startTracking = async () => {
     */
 
 
-    // If hands are detected, loop through them and draw a red circle around the center of the hand
+    // If hands are detected, loop through them and update tracker state.
     if (results.multiHandLandmarks) {
       for (const landmarks of results.multiHandLandmarks) {
         // Landmark 9 is the middle finger MCP (base knuckle),
         // Landmark 0 is the wrist. Averaging them gives a stable center point of the palm.
         const wrist = landmarks[0]
         if (wrist) {
+          wristPosition = { x: wrist.x, y: wrist.y };
           tracker.update(wrist.x, wrist.y);
         }
-        /*
-        const middleFingerMCP = landmarks[9]
-
-        const centerX = ((wrist.x + middleFingerMCP.x) / 2) * canvasElement.width
-        const centerY = ((wrist.y + middleFingerMCP.y) / 2) * canvasElement.height
-
-        // Calculate a dynamic radius based on hand scale (distance from wrist to middle finger base)
-        const dx = (middleFingerMCP.x - wrist.x) * canvasElement.width
-        const dy = (middleFingerMCP.y - wrist.y) * canvasElement.height
-        const handSpan = Math.sqrt(dx * dx + dy * dy)
-        const radius = handSpan * 1.2 // Scale circle to fit the palm area
-
-
-                // Draw the red circle
-                canvasCtx.beginPath()
-                canvasCtx.arc(centerX, centerY, radius, 0, 2 * Math.PI)
-                canvasCtx.lineWidth = 4
-                canvasCtx.strokeStyle = '#ff0000'
-                canvasCtx.stroke()
-                */
-
       }
     }
 
+    // Draw the live video frame to the floating overlay canvas.
+    const overlayCanvas = canvasVideoRef.value
+    if (overlayCanvas) {
+      const overlayCtx = overlayCanvas.getContext('2d')
+      if (overlayCtx) {
+        const canvasWidth = overlayCanvas.width;
+        const canvasHeight = overlayCanvas.height;
+        overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight)
 
+        // Mirror the overlay video horizontally
+        overlayCtx.save()
+        overlayCtx.translate(canvasWidth, 0)
+        overlayCtx.scale(-1, 1)
+        overlayCtx.drawImage(videoElement, 0, 0, canvasWidth, canvasHeight)
+        overlayCtx.restore()
+
+        if (wristPosition) {
+          // Mirror the wrist marker position too
+          // const mirroredX = canvasWidth - wristPosition.x * canvasWidth
+          overlayCtx.beginPath()
+          overlayCtx.arc(wristPosition.x * canvasWidth, wristPosition.y * canvasHeight, 10, 0, 2 * Math.PI)
+          overlayCtx.fillStyle = 'rgba(255, 0, 0, 0.7)'
+          overlayCtx.fill()
+        }
+      }
+    }
 
     // canvasCtx.restore()
   });
@@ -178,6 +211,7 @@ const startTracking = async () => {
 
     await cameraInstance.start()
     isRunning.value = true
+    isStreaming.value = true;
   } catch (err) {
     errorMessage.value = 'Could not initialize webcam. Check permissions.'
     console.error(err)
@@ -227,12 +261,15 @@ const stopCamera = () => {
 
 onMounted(() => {
   startTracking();
-
   const loop = () => {
     if (game && ctx) {
       game.updatePhysics();
       game.draw(ctx);
       requestAnimationFrame(loop);
+      // console.log("Game loop running...:", counter);
+    }
+    else {
+      console.log("Game or context not initialized yet.");
     }
   };
   loop();
@@ -246,6 +283,23 @@ onUnmounted(() => {
   <AdminLayout>
     <PageBreadcrumb :pageTitle="currentPageTitle" />
     <div class="space-y-5 sm:space-y-6">
+
+      <!-- Плавуче вікно -->
+      <div class="floating-window" :style="{ top: windowPosition.y + 'px', left: windowPosition.x + 'px' }">
+        <!-- Шапка вікна, за яку можна перетягувати -->
+        <div class="window-header" @mousedown="startDrag">
+          <div v-if="isStreaming">
+            <canvas ref="canvasVideoRef" class="webcam-canvas"></canvas>
+
+          </div>
+          <span class="window-title">Camera Stream</span>
+          <span class="drag-handle">⠿</span>
+        </div>
+      </div>
+
+
+
+
 
 
 
@@ -262,7 +316,7 @@ onUnmounted(() => {
 
         <div class="controls">
           <button v-if="isStreaming" @click="captureFrame">Capture Frame</button>
-          <button v-if="!isStreaming" @click="startCamera">Start Camera</button>
+          <!--Fixme: <button v-if="!isStreaming" @click="startCamera">Start Camera</button> -->
           <button v-else @click="stopCamera">Stop Camera</button>
         </div>
 
@@ -277,6 +331,19 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
+/* Стилі для плавучого вікна */
+.floating-window {
+  position: fixed;
+  z-index: 1000;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  min-width: 100px;
+  min-height: 100px;
+  transition: transform 0.2s ease-in-out;
+}
 .camera-container {
   display: flex;
   flex-direction: column;
@@ -293,7 +360,7 @@ onUnmounted(() => {
 
   /* border-radius: 8px; */
   background-color: #000;
-  
+
 }
 
 .error-banner {
