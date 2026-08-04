@@ -260,6 +260,7 @@ onUnmounted(() => {
   max-width: 640px;
   border-radius: 8px;
   background-color: #000;
+  
 }
 
 .error-banner {

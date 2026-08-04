@@ -134,7 +134,9 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import DropdownMenu from '../common/DropdownMenu.vue'
+import DropdownMenuImport from '../common/DropdownMenu.vue'
+import type { Component } from 'vue'
+const DropdownMenu = DropdownMenuImport as unknown as Component
 const menuItems = [
   { label: 'View More', onClick: () => console.log('View More clicked') },
   { label: 'Delete', onClick: () => console.log('Delete clicked') },
