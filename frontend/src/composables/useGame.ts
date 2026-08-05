@@ -32,6 +32,9 @@ const colorMap: Record<string, string> = {
 }
 
 export class GameArcade {
+  start() {
+    throw new Error('Method not implemented.')
+  }
   public state: GameState
   public paddle: Paddle
   public ball: Ball
@@ -96,7 +99,13 @@ export class GameArcade {
   public movePaddle(point: Point2D): void {
     this.handPoint = point
     const handPercentX: number = point.x
-    const target = (handPercentX * this.canvas.width) / 100
+    let target: number = 0
+    if (Math.abs(handPercentX) < 1) {
+      target = (handPercentX * this.canvas.width) / 1
+    } else {
+      target = (handPercentX * this.canvas.width) / 100
+    }
+
     const oldX = this.paddle.x
 
     this.paddle.x = target - this.paddle.width / 2
@@ -120,6 +129,11 @@ export class GameArcade {
       this.ball.dx = this.ball.speed
       this.ball.dy = this.ball.speed
     }
+  }
+
+  public stopGame(): void {
+    this.resetBall()
+    this.state.playing = false
   }
 
   public resetBall(): void {

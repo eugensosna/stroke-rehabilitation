@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, reactive } from 'vue'
 import { Hands, type Results as HandResults } from '@mediapipe/hands'
+import { Pose } from '@mediapipe/pose'
 import { Camera } from '@mediapipe/camera_utils'
 import AdminLayout from '@/components/layout/AdminLayout.vue';
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue';
@@ -24,6 +25,7 @@ const capturedImage = ref<string | null>(null)
 let cameraInstance: Camera | null = null
 let handsInstance: Hands | null = null
 const isStreaming = ref<boolean>(false);
+const isGameRunning = ref<boolean>(false);
 
 // Логіка для перетягування вікна (Draggable)
 const windowPosition = reactive<{ x: number; y: number }>({ x: 300, y: 100 })
@@ -77,6 +79,27 @@ const handleStationary = (point: Point2D) => {
   }
 };
 
+// Keyboard controls: move paddle left/right with arrow keys
+const onKeyDown = (e: KeyboardEvent) => {
+  if (!game || !canvasRef.value) return
+
+  const canvasWidth = canvasRef.value.width
+  const paddleCenter = game.paddle.x + game.paddle.width / 2
+  let percent = paddleCenter / canvasWidth
+  const STEP = 0.05 // move by 5% of canvas width per key press
+
+  if (e.key === 'ArrowLeft') {
+    percent = Math.max(0, percent - STEP)
+  } else if (e.key === 'ArrowRight') {
+    percent = Math.min(1, percent + STEP)
+  } else {
+    return
+  }
+
+  // Provide a Point2D-like object to movePaddle
+  game.movePaddle({ x: percent, y: 0, timestamp: Date.now() })
+}
+
 // 2. Ініціалізуємо трекер
 const tracker: WristTracker = new WristTracker(
   handleMotionComplete,
@@ -115,6 +138,33 @@ const startTracking = async () => {
   }
   game = new GameArcade(canvasElement);
   ctx = canvasCtx;
+
+  //Fixme: Initialize MediaPipe Pose for additional pose tracking if needed, research for future enhancements.
+
+  const poseInstance = new Pose({
+    locateFile: (file) => {
+      return `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`
+    }
+  })
+  poseInstance.setOptions({
+    modelComplexity: 1,
+    smoothLandmarks: true,
+    enableSegmentation: false,
+    smoothSegmentation: false,
+    minDetectionConfidence: 0.5,
+    minTrackingConfidence: 0.5
+  })
+  poseInstance.onResults((results) => {
+    // You can process pose results here if needed
+    // For now, we are focusing on hand tracking
+    if (results.poseLandmarks) {
+      // Example: Log the position of the nose
+      const nose = results.poseLandmarks[0]
+      console.log(`Nose position: x=${nose.x}, y=${nose.y}, z=${nose.z}`)
+    }
+  })
+
+
 
   // 1. Initialize MediaPipe Hands
   handsInstance = new Hands({
@@ -159,8 +209,15 @@ const startTracking = async () => {
         // Landmark 0 is the wrist. Averaging them gives a stable center point of the palm.
         const wrist = landmarks[0]
         if (wrist) {
-          wristPosition = { x: wrist.x, y: wrist.y };
+          wristPosition = { x: wrist.x, y: wrist.y, timestamp: Date.now() };
           tracker.update(wrist.x, wrist.y);
+          if (game) {
+            game.movePaddle(wristPosition);
+          } else {
+            console.log("Game instance not initialized yet.");
+          }
+
+
         }
       }
     }
@@ -203,6 +260,7 @@ const startTracking = async () => {
       onFrame: async () => {
         if (videoRef.value && handsInstance) {
           await handsInstance.send({ image: videoRef.value })
+          poseInstance.send({ image: videoRef.value })
         }
       },
       width: 1280,
@@ -217,7 +275,28 @@ const startTracking = async () => {
     console.error(err)
   }
 }
+const startGame = () => {
+  isGameRunning.value = true;
+  if (!game) {
+    console.error("Game instance is not initialized yet.");
+    return;
+  }
+  game.startGame();
+};
 
+const stopGame = () => {
+  isGameRunning.value = false;
+  if (!game) {
+    console.error("Game instance is not initialized yet.");
+    return;
+  }
+
+  game.stopGame();
+  printSessionStatistics(); // Print statistics when the game stops
+};
+
+
+/*
 const captureFrame = () => {
   if (!videoRef.value || !canvasRef.value) return
 
@@ -237,7 +316,7 @@ const captureFrame = () => {
 
   capturedImage.value = canvasElement.toDataURL('image/png')
 }
-
+*/
 const stopTracking = () => {
   if (cameraInstance) {
     cameraInstance.stop()
@@ -250,17 +329,17 @@ const stopTracking = () => {
   }
   isRunning.value = false
 }
-
+/*
 const stopCamera = () => {
   stopTracking();
   // Коли потрібно вивести статистику (наприклад, кнопкою або в кінці сеансу):
   printSessionStatistics();
-
 }
-
+*/
 
 onMounted(() => {
   startTracking();
+  window.addEventListener('keydown', onKeyDown)
   const loop = () => {
     if (game && ctx) {
       game.updatePhysics();
@@ -277,6 +356,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   stopTracking()
+  window.removeEventListener('keydown', onKeyDown)
 })
 </script>
 <template>
@@ -315,9 +395,11 @@ onUnmounted(() => {
         <canvas ref="canvasRef" class="webcam-canvas" width="440" height="500"></canvas>
 
         <div class="controls">
-          <button v-if="isStreaming" @click="captureFrame">Capture Frame</button>
+          <button v-if="!isGameRunning" @click="startGame">Start Game</button>
+          <button v-if="isGameRunning" @click="stopGame">Stop Game</button>
+          <!-- <button v-if="isStreaming" @click="captureFrame">Capture Frame</button> -->
           <!--Fixme: <button v-if="!isStreaming" @click="startCamera">Start Camera</button> -->
-          <button v-else @click="stopCamera">Stop Camera</button>
+          <!-- <button v-else @click="stopCamera">Stop Camera</button> -->
         </div>
 
         <!-- Snapshot Preview -->
@@ -344,6 +426,7 @@ onUnmounted(() => {
   min-height: 100px;
   transition: transform 0.2s ease-in-out;
 }
+
 .camera-container {
   display: flex;
   flex-direction: column;
