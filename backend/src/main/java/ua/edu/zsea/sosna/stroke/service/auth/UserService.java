@@ -15,26 +15,26 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import lombok.AllArgsConstructor;
-import ua.edu.zsea.sosna.stroke.domain.AccesTocken;
+import ua.edu.zsea.sosna.stroke.domain.AccessToken;
 import ua.edu.zsea.sosna.stroke.domain.User;
 import ua.edu.zsea.sosna.stroke.model.Roles;
 import ua.edu.zsea.sosna.stroke.model.auth.AuthResponse;
 import ua.edu.zsea.sosna.stroke.model.auth.UserApiRegisterRequest;
 import ua.edu.zsea.sosna.stroke.model.auth.UserLoginRequest;
 import ua.edu.zsea.sosna.stroke.model.auth.UserNewInitial;
-import ua.edu.zsea.sosna.stroke.repos.AccesTockenRepository;
+import ua.edu.zsea.sosna.stroke.repos.accessTokenRepository;
 import ua.edu.zsea.sosna.stroke.repos.UserRepository;
 import ua.edu.zsea.sosna.stroke.util.CustomCollectors;
 
 @Service
-//@NoArgsConstructor
+// @NoArgsConstructor
 @AllArgsConstructor
 public class UserService {
 
 	private final UserRepository userRepository;
 	private final AuthenticationManager authenticationManager;
 	private final PasswordEncoder passwordEncoder;
-	private final AccesTockenRepository accesTockenRepository;
+	private final accessTokenRepository accessTokenRepository;
 	private final jwtService jwtService;
 	private final UserDetailsService userDetailsService;
 
@@ -46,26 +46,26 @@ public class UserService {
 		return userRepository.findAll(Sort.by(User::getId)).stream()
 				.collect(CustomCollectors.toSortedMap(User::getId, User::getId));
 	}
+
 	@Transactional
 	public AuthResponse login(UserLoginRequest loginUser) {
-		
-		var userDb = userRepository.findByEmail(loginUser.email()).orElseThrow(()-> new ResponseStatusException(HttpStatus.UNAUTHORIZED) );
-		
+
+		var userDb = userRepository.findByEmail(loginUser.email())
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
+
 		try {
-            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
-            		loginUser.email(), loginUser.password()));
-        } catch (final BadCredentialsException ex) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
-        }
+			authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
+					loginUser.email(), loginUser.password()));
+		} catch (final BadCredentialsException ex) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
+		}
 		var result = buildAuthResponse(userDb, userDb.getEmail(), userDb.getRole().name(), false);
-		
-        return result;
+
+		return result;
 	}
 
 	public AuthResponse register(UserNewInitial user) {
-		
-		
-		
+
 		var newItem = new User();
 		newItem.setEmail(user.email());
 		newItem.setFullName(user.fullname());
@@ -75,18 +75,16 @@ public class UserService {
 		return buildAuthResponse(savedUser, user.email(), user.role(), true);
 
 	}
-	
 
 	public AuthResponse register(UserApiRegisterRequest user) {
 		var newItem = UserNewInitial.builder().email(user.email())
 				.fullname(user.fullname())
 				.password(user.password())
-				.role(Roles.USER.name())			
+				.role(Roles.USER.name())
 				.build();
 		return register(newItem);
 
 	}
-
 
 	public AuthResponse buildAuthResponse(User user, String email, String role, boolean isNewUser) {
 		// Create custom UserDetails for JWT generation
@@ -99,14 +97,27 @@ public class UserService {
 		Long expiresIn = jwtService.getAccessTokenExpiration();
 
 		// Persist refresh token
-		AccesTocken rt = AccesTocken.builder().user(user).tocken(accessToken).refreshTocken(refreshToken)
+		AccessToken rt = AccessToken.builder().user(user).Token(accessToken).refreshToken(refreshToken)
 				.dateCreated(OffsetDateTime.now()).endTime(OffsetDateTime.now().plusDays(30)).build();
 
-		accesTockenRepository.save(rt);
+		accessTokenRepository.save(rt);
 
-//        AuthResponse.builder().accessToken(accessToken).
+		// AuthResponse.builder().accessToken(accessToken).
 		return AuthResponse.builder().accessToken(accessToken).refreshToken(refreshToken).expiresIn(expiresIn / 1000) // seconds
 				.build();
+	}
+
+	@Transactional
+	public AuthResponse refreshToken(String refreshToken) {
+		var token = accessTokenRepository.findByRefreshToken(refreshToken)
+				.orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
+
+		if (token.getEndTime().isBefore(OffsetDateTime.now())) {
+			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Refresh token expired");
+		}
+
+		var user = token.getUser();
+		return buildAuthResponse(user, user.getEmail(), user.getRole().name(), false);
 	}
 
 }
