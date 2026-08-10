@@ -1,13 +1,14 @@
+import { AuthStore } from '@/store/auth_store'
 import axios from 'axios'
-let baseURL =  (import.meta.env.VITE_API_BASE_URL as string | undefined) ??''+ '/api';
+let baseURL = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? '' + '/api'
 if (!baseURL.endsWith('/api')) {
-  baseURL += '/api';
+  baseURL += '/api'
 }
-console.log('API Base URL:', baseURL);
-export const  api = axios.create({
+console.log('API Base URL:', baseURL)
+export const api = axios.create({
   baseURL: baseURL,
   timeout: 10_000,
-  headers: { 'Content-Type': 'application/json' }
+  headers: { 'Content-Type': 'application/json' },
 })
 
 // Attach JWT token to every request
@@ -18,19 +19,21 @@ api.interceptors.request.use((config) => {
   }
   return config
 })
-api.interceptors.request.use((request) => {
-  console.log('Axios Outgoing Request:', request.method?.toUpperCase(), request.url, request.data);
-  return request;
-}, (error) => {
-  console.error('Axios Request Error:', error);
-  return Promise.reject(error);
-});
+api.interceptors.request.use(
+  (request) => {
+    console.log('Axios Outgoing Request:', request.method?.toUpperCase(), request.url, request.data)
+    return request
+  },
+  (error) => {
+    console.error('Axios Request Error:', error)
+    return Promise.reject(error)
+  },
+)
 
 // Redirect to login on 401
 api.interceptors.response.use(
-
   (response) => {
-    console.log('Axios Incoming Response:', response.status, response.data);
+    console.log('Axios Incoming Response:', response.status, response.data)
     // Unwrap ApiResponse<T> envelope from Spring Boot backend
     if (
       response.data !== null &&
@@ -43,25 +46,44 @@ api.interceptors.response.use(
     }
     return response
   },
-  (error) => {
-    console.error('Axios Error Object:',  error.response?.status, error.response?.data || error.message);
+  async (error) => {
+    console.error(
+      'Axios Error Object:',
+      error.response?.status,
+      error.response?.data || error.message,
+    )
     if (error.response?.status === 401) {
       sessionStorage.removeItem('token')
+      const refreshToken = sessionStorage.getItem('refreshToken')
+      if (refreshToken) {
+        const auth_store = AuthStore()
+        try {
+          await auth_store.refreshToken()
+        } catch (refreshError) {
+          console.error('Token refresh failed:', refreshError)
+          sessionStorage.removeItem('refreshToken')
+          sessionStorage.removeItem('user')
+          window.location.href = '/login'
+        }
+      }
       sessionStorage.removeItem('user')
       window.location.href = '/login'
     }
     return Promise.reject(error)
-  }
+  },
 )
 
 axios.interceptors.response.use(
   (response) => {
-    console.log('Axios Incoming Response:', response.status, response.data);
-    return response;
+    console.log('Axios Incoming Response:', response.status, response.data)
+    return response
   },
   (error) => {
-    console.error('Axios Error Object:', error.response?.status, error.response?.data || error.message);
-    return Promise.reject(error);
-  }
-);
-
+    console.error(
+      'Axios Error Object:',
+      error.response?.status,
+      error.response?.data || error.message,
+    )
+    return Promise.reject(error)
+  },
+)
