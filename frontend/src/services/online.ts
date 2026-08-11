@@ -2,11 +2,11 @@
 
 import axios from 'axios'
 
-const baseURL = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? ''
-//if (!baseURL.endsWith('/api')) {
-//  baseURL += '/api';
-//}
-console.log('API Base URL:', baseURL)
+let baseURL = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? ''
+if (baseURL.endsWith('/')) {
+  baseURL = baseURL.slice(0, -1)
+}
+console.log('API Base URL for Health Check:', baseURL)
 export const api = axios.create({
   baseURL: baseURL,
   timeout: 10_000,
