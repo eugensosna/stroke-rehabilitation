@@ -21,6 +21,7 @@
     "@fullcalendar/vue3": "^6.1.15",
     "@mediapipe/camera_utils": "^0.3.1675466862",
     "@mediapipe/hands": "^0.4.1675469240",
+    "@mediapipe/pose": "^0.5.1675469404",
     "@tailwindcss/forms": "^0.5.10",
     "@tailwindcss/typography": "^0.5.16",
     "@tensorflow-models/pose-detection": "^2.1.3",

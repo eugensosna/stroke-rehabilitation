@@ -1,0 +1,51 @@
+plugins {
+    id "com.github.node-gradle.node" version "7.1.0"
+}
+
+allprojects {
+    repositories {
+        mavenCentral()
+    }
+}
+dependencies {
+    developmentOnly('org.springframework.boot:spring-boot-docker-compose')
+
+}
+
+node {
+    version = '24.15.0'
+    download = true
+    workDir = file("${project.projectDir}/frontend/.gradle/nodejs")
+    npmWorkDir = file("${project.projectDir}/frontend/.gradle/npm")
+    nodeProjectDir = file("${project.projectDir}/frontend")
+}
+
+task npmInstallFrontend(type: com.github.gradle.node.npm.task.NpmTask) {
+    args = ['install']
+}
+
+task buildFrontend(type: com.github.gradle.node.npm.task.NpmTask) {
+    dependsOn npmInstallFrontend
+    args = ['run', 'build']
+}
+
+task copyFrontendToBackend(type: Copy) {
+    dependsOn buildFrontend
+    from "${project.projectDir}/frontend/dist"
+    into "${project.projectDir}/backend/src/main/resources/static"
+}
+
+// using afterEvaluate ensures the backend project is fully loaded 
+// and its 'processResources' task is available
+project(':backend') {
+    afterEvaluate {
+        tasks.named('processResources') {
+            dependsOn(':copyFrontendToBackend')
+        }
+    }
+}
+
+task buildFullStack {
+    dependsOn(':backend:bootJar')
+    description = 'Builds the Vue frontend, copies assets to Spring Boot, and packages the final executable JAR.'
+}

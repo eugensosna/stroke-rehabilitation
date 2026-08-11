@@ -24,20 +24,21 @@ public class InitData {
 
 	@PostConstruct
 	public void onSetup() {
-		log.debug("start databank initialisation");
+		log.info("start databank Users initialisation");
 		var usersConfig = instalationProperties.getUsers();
 		if (usersConfig!=null) {
 		if (usersConfig.size() == 0) {
-			log.debug("users in config 0, skipping");
+			log.info("users list  in config is 0, skipping");
 			return;
 		}
 		
 		}else {
+			log.info("users list  in config is null, skipping");
 			return;
 		}
 		var usersInDb = userRepository.findAll();
 		if (usersInDb.size()>0) {
-			log.debug("users also exist in db, skipping ");
+			log.debug("users  also exist in db, skip adding");
 			return;
 		}
 		for (UserNewInitial userNewInitial : usersConfig) {

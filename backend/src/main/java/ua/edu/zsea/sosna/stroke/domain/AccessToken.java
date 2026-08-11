@@ -28,7 +28,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 
 @Entity
-@Table(name = "AccesTockens")
+@Table(name = "accessTokens")
 @EntityListeners(AuditingEntityListener.class)
 @Getter
 @Setter
@@ -36,7 +36,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @SoftDelete
 @AllArgsConstructor
 @Builder
-public class AccesTocken {
+public class AccessToken {
 
     @Id
     @Column(nullable = false, updatable = false)
@@ -53,7 +53,7 @@ public class AccesTocken {
     private Long id;
 
     @Column
-    private String tocken;
+    private String Token;
 
     @Column
     private OffsetDateTime doDateTime;
@@ -62,10 +62,10 @@ public class AccesTocken {
     private OffsetDateTime endTime;
 
     @Column
-    private String resetTocken;
+    private String resetToken;
 
     @Column
-    private String refreshTocken;
+    private String refreshToken;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @NotFound(action = NotFoundAction.IGNORE)

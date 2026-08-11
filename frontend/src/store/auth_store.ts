@@ -36,19 +36,43 @@ export const AuthStore = defineStore("auth", () => {
   async function login(credentials: LoginCredentials): Promise<void> {
     const response = await AuthService.login(credentials);
     sessionStorage.setItem("token", response.accessToken);
+    sessionStorage.setItem('refreshToken', response.refreshToken)
     sessionStorage.setItem("authToken", JSON.stringify(response));
     authToken.value = response;
+  }
+
+  async function saveAuthToken(param: AuthResponse | null) {
+    if (param) {
+      sessionStorage.setItem('token', param.accessToken)
+      sessionStorage.setItem('refreshToken', param.refreshToken)
+      sessionStorage.setItem('authToken', JSON.stringify(param))
+      authToken.value = param
+    } else {
+      sessionStorage.removeItem('token')
+      sessionStorage.removeItem('refreshToken')
+      sessionStorage.removeItem('authToken')
+      authToken.value = null
+    }
   }
 
   function logout(): void {
     authToken.value = null;
     sessionStorage.removeItem("token");
+    sessionStorage.removeItem('refreshToken')
     sessionStorage.removeItem("authToken");
     authToken.value = null;
   }
 
-  if (sessionStorage.getItem("authToken")) {
-    authToken.value = JSON.parse(sessionStorage.getItem("authToken") as string);
+  async function refreshToken(): Promise<void> {
+    const refreshToken = sessionStorage.getItem('refreshToken')
+    if (refreshToken) {
+      const updatedAuthToken = await AuthService.refreshToken(refreshToken)
+      saveAuthToken(updatedAuthToken)
+    }
+  }
+
+  if (sessionStorage.getItem('authToken') && authToken.value === null) {
+    authToken.value = JSON.parse(sessionStorage.getItem('authToken') as string)
   }
 
   const userName = computed(() =>  {
@@ -62,5 +86,5 @@ export const AuthStore = defineStore("auth", () => {
 
   });
 
-  return { authToken, isAuthenticated, login, logout, userName };
+  return { authToken, isAuthenticated, login, logout, userName, refreshToken, saveAuthToken }
 });

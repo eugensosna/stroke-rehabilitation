@@ -59,3 +59,4 @@ CLAUDE.md
 coverage/
 **/bin/**
 ./postgres
+backend/src/main/resources/static/*

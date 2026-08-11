@@ -53,7 +53,8 @@ public class AuthentificationResource {
 	public ResponseEntity<AuthResponse> login(@RequestBody UserLoginRequest loginUser) {
 		log.info("start login for user: {}", loginUser.email());
 		var result = userService.login(loginUser);
-		// ResponseCookie cookieTocken = ResponseCookie.from("user-token", result.accessToken()).httpOnly(true) // Protects
+		// ResponseCookie cookieToken = ResponseCookie.from("user-token",
+		// result.accessToken()).httpOnly(true) // Protects
 		// 																										// against
 		// 																										// XSS
 		// 																										// attacks
@@ -65,18 +66,26 @@ public class AuthentificationResource {
 		log.info("login is successful");
 		// return
 		// ResponseEntity.ok().header(org.springframework.http.HttpHeaders.SET_COOKIE,
-		// cookieTocken.toString())
+		// cookieToken.toString())
 		// .body(result);
 		return ResponseEntity.ok().body(result);
 
 
 	}
 
+	@PostMapping("/refreshToken")
+	@Transactional
+	public ResponseEntity<AuthResponse> refreshToken(@RequestBody String refreshToken) {
+		var result = userService.refreshToken(refreshToken);
+		return ResponseEntity.ok().body(result);
+	}
+
 	@PostMapping("/register")
 	@Transactional
 	public ResponseEntity<AuthResponse> register(@RequestBody UserApiRegisterRequest newUser) {
 		var result = userService.register(newUser);
-		ResponseCookie cookieTocken = ResponseCookie.from("user-token", result.accessToken()).httpOnly(true) // Protects
+		ResponseCookie cookieToken = ResponseCookie.from("user-token", result.accessToken()).httpOnly(
+				true) // Protects
 																												// against
 																												// XSS
 																												// attacks
@@ -86,7 +95,7 @@ public class AuthentificationResource {
 				.sameSite("Lax") // Protects against CSRF attacks
 				.build();
 
-		return ResponseEntity.ok().header(org.springframework.http.HttpHeaders.SET_COOKIE, cookieTocken.toString())
+		return ResponseEntity.ok().header(org.springframework.http.HttpHeaders.SET_COOKIE, cookieToken.toString())
 				.body(result);
 
 	}
