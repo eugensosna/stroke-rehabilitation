@@ -32,7 +32,7 @@ services:
       db:
         condition: service_healthy
     ports:
-      - "${BACKEND_LISTEN_PORT:-8080}:8080"
+      - '${LISTEN_BACKEND_PORT:-8080}:8080'
   frontend:
     build:
       context: ./frontend
@@ -46,7 +46,7 @@ services:
     depends_on:
       - backend
     ports:
-      - "${FRONTEND_LISTEN_PORT:-5173}:3080"
+      - '${LISTEN_FRONTEND_PORT:-5173}:3080'
     volumes:
       # - ./:/app
       - frontend_node_modules:/app/node_modules

@@ -58,4 +58,5 @@ CLAUDE.md
 .superpowers/
 coverage/
 **/bin/**
+./postgres
 backend/src/main/resources/static/*
