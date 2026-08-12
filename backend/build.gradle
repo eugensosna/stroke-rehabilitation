@@ -55,6 +55,23 @@ node {
     nodeProjectDir = file("${project.projectDir}/../frontend")
 }
 
+
+task npmInstallFrontend(type: com.github.gradle.node.npm.task.NpmTask) {
+    args = ['install']
+}
+
+task buildFrontend(type: com.github.gradle.node.npm.task.NpmTask) {
+    dependsOn npmInstallFrontend
+    args = ['run', 'build']
+}
+
+task copyFrontendToBackend(type: Copy) {
+    dependsOn buildFrontend
+    from "${project.projectDir}/../frontend/dist"
+    into "${project.projectDir}/src/main/resources/static"
+}
+
+
 tasks.register('npmRunBuild', NpmTask) {
   // args = ['run', 'build']
   args = ['install']
@@ -70,7 +87,10 @@ tasks.register('npmRunBuild', NpmTask) {
 }
 
 processResources {
-  dependsOn npmRunBuild
+  // dependsOn npmRunBuild
+  dependsOn copyFrontendToBackend
+  from "${project.projectDir}/../frontend/dist"
+  into "${project.projectDir}/src/main/resources/static"
 }
 
 tasks.withType(Test) {
