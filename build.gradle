@@ -7,13 +7,9 @@ allprojects {
         mavenCentral()
     }
 }
-dependencies {
-    developmentOnly('org.springframework.boot:spring-boot-docker-compose')
-
-}
 
 node {
-    version = '24.15.0'
+    version = '24.16.0'
     download = true
     workDir = file("${project.projectDir}/frontend/.gradle/nodejs")
     npmWorkDir = file("${project.projectDir}/frontend/.gradle/npm")

@@ -50,6 +50,9 @@ dependencies {
 node {
   download.set(true)
   version.set('24.16.0')
+  workDir = file("${project.projectDir}/../frontend/.gradle/nodejs")
+  npmWorkDir = file("${project.projectDir}/../frontend/.gradle/npm")
+    nodeProjectDir = file("${project.projectDir}/../frontend")
 }
 
 tasks.register('npmRunBuild', NpmTask) {
@@ -67,9 +70,10 @@ tasks.register('npmRunBuild', NpmTask) {
 }
 
 processResources {
-  // dependsOn npmRunBuild
+  dependsOn npmRunBuild
 }
 
 tasks.withType(Test) {
+
   useJUnitPlatform()
 }
