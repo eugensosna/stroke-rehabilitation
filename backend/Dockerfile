@@ -8,6 +8,7 @@ COPY build.gradle settings.gradle ./
 
 # Make the wrapper executable and download dependencies (cached unless build files change)
 RUN chmod +x gradlew
+
 RUN ./gradlew dependencies --no-daemon
 
 # Copy the rest of the application source code
