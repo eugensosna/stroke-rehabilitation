@@ -17,10 +17,10 @@ import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -30,7 +30,8 @@ import ua.edu.zsea.sosna.stroke.service.GameService;
 import ua.edu.zsea.sosna.stroke.service.GameStatsService;
 import ua.edu.zsea.sosna.stroke.service.auth.UserService;
 
-@WebMvcTest(controllers = GameResource.class)
+@org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest(controllers = GameResource.class)
+@EnableAutoConfiguration
 @AutoConfigureMockMvc(addFilters = false)
 class GameResourceTest {
 
@@ -40,13 +41,13 @@ class GameResourceTest {
 	@Autowired
 	private ObjectMapper objectMapper;
 
-	@MockBean
+	@MockitoBean
 	private GameService gameService;
 
-	@MockBean
+	@MockitoBean
 	private GameStatsService gameStatsService;
 
-	@MockBean
+	@MockitoBean
 	private UserService userService;
 
 	@Test
@@ -79,13 +80,15 @@ class GameResourceTest {
 	void createGame_returnsCreatedId() throws Exception {
 		when(gameService.create(any(GameDTO.class))).thenReturn(10L);
 
-		mockMvc.perform(post("/api/games").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(new GameDTO())))
+		mockMvc.perform(post("/api/games").contentType(MediaType.APPLICATION_JSON)
+				.content(objectMapper.writeValueAsString(new GameDTO())))
 				.andExpect(status().isCreated()).andExpect(content().string("10"));
 	}
 
 	@Test
 	void updateGame_returnsId() throws Exception {
-		mockMvc.perform(put("/api/games/5").contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(new GameDTO())))
+		mockMvc.perform(put("/api/games/5").contentType(MediaType.APPLICATION_JSON)
+				.content(objectMapper.writeValueAsString(new GameDTO())))
 				.andExpect(status().isOk()).andExpect(content().string("5"));
 
 		verify(gameService).update(eq(5L), any(GameDTO.class));
@@ -102,14 +105,15 @@ class GameResourceTest {
 	void getStatisticValues_returnsMap() throws Exception {
 		when(gameStatsService.getGameStatsValues()).thenReturn(Map.of(1L, 2L));
 
-		mockMvc.perform(get("/api/games/statisticValues")).andExpect(status().isOk()).andExpect(jsonPath("$.\"1\"").value(2));
+		mockMvc.perform(get("/api/games/statisticValues")).andExpect(status().isOk())
+				.andExpect(jsonPath("$.\"1\"").value(2));
 	}
 
 	@Test
 	void getUserValues_returnsMap() throws Exception {
 		when(userService.getUserValues()).thenReturn(Map.of(1L, 2L));
 
-		mockMvc.perform(get("/api/games/userValues")).andExpect(status().isOk()).andExpect(jsonPath("$.\"1\"").value(2));
+		mockMvc.perform(get("/api/games/userValues")).andExpect(status().isOk())
+				.andExpect(jsonPath("$.\"1\"").value(2));
 	}
 }
-

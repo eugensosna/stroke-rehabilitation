@@ -1,8 +1,6 @@
 package ua.edu.zsea.sosna.stroke.config;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -65,7 +63,7 @@ public class CustomSecurityConfig {
 			corsToSet = corsAllowesOrigins;
 		}
 
-		List<String> corsList = Arrays.stream(corsToSet.split(",")).map(String::trim).toList();
+		List<String> corsList = Arrays.stream(corsToSet.split(",")).map(t -> t.trim()).toList();
 		if (corsList.size() == 0) {
 			corsList.add(corsToSet);
 		}

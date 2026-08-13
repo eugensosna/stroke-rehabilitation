@@ -43,8 +43,8 @@ public class UserService {
 	 * = userRepository; }
 	 */
 	public Map<Long, Long> getUserValues() {
-		return userRepository.findAll(Sort.by(User::getId)).stream()
-				.collect(CustomCollectors.toSortedMap(User::getId, User::getId));
+		return userRepository.findAll(Sort.by(Sort.Order.asc("id"))).stream()
+				.collect(CustomCollectors.toSortedMap(u -> u.getId(), u -> u.getId()));
 	}
 
 	@Transactional

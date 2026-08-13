@@ -13,11 +13,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
+import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -29,6 +30,7 @@ import ua.edu.zsea.sosna.stroke.model.auth.UserLoginRequest;
 import ua.edu.zsea.sosna.stroke.service.auth.UserService;
 
 @WebMvcTest(controllers = AuthentificationResource.class)
+@EnableAutoConfiguration
 @AutoConfigureMockMvc(addFilters = false)
 class AuthentificationResourceTest {
 
@@ -38,7 +40,7 @@ class AuthentificationResourceTest {
 	@Autowired
 	private ObjectMapper objectMapper;
 
-	@MockBean
+	@MockitoBean
 	private UserService userService;
 
 	@Test
@@ -59,7 +61,8 @@ class AuthentificationResourceTest {
 		dto.setFullName("User");
 
 		mockMvc.perform(post("/api/auth/test").contentType(MediaType.APPLICATION_JSON)
-				.content(objectMapper.writeValueAsString(dto))).andExpect(status().isOk()).andExpect(jsonPath("$.email").value("u@example.com"))
+				.content(objectMapper.writeValueAsString(dto))).andExpect(status().isOk())
+				.andExpect(jsonPath("$.email").value("u@example.com"))
 				.andExpect(jsonPath("$.password").value("p")).andExpect(jsonPath("$.fullName").value("User"));
 	}
 
@@ -68,22 +71,26 @@ class AuthentificationResourceTest {
 		when(userService.login(any(UserLoginRequest.class))).thenReturn(AuthResponse.of("access", "refresh", 123L));
 
 		mockMvc.perform(post("/api/auth/login").contentType(MediaType.APPLICATION_JSON)
-				.content(objectMapper.writeValueAsString(new UserLoginRequest("u@example.com", "pw", null)))).andExpect(status().isOk())
-				.andExpect(jsonPath("$.accessToken").value("access")).andExpect(jsonPath("$.refreshToken").value("refresh"));
+				.content(objectMapper.writeValueAsString(new UserLoginRequest("u@example.com", "pw", null))))
+				.andExpect(status().isOk())
+				.andExpect(jsonPath("$.accessToken").value("access"))
+				.andExpect(jsonPath("$.refreshToken").value("refresh"));
 
 		verify(userService).login(any(UserLoginRequest.class));
 	}
 
 	@Test
 	void register_setsCookieAndReturnsAuthResponse() throws Exception {
-		when(userService.register(any(UserApiRegisterRequest.class))).thenReturn(AuthResponse.of("access", "refresh", 123L));
+		when(userService.register(any(UserApiRegisterRequest.class)))
+				.thenReturn(AuthResponse.of("access", "refresh", 123L));
 
 		mockMvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON).content(
-				objectMapper.writeValueAsString(new UserApiRegisterRequest("User User", "u@example.com", "pw")))).andExpect(status().isOk())
+				objectMapper.writeValueAsString(new UserApiRegisterRequest("User User", "u@example.com", "pw"))))
+				.andExpect(status().isOk())
 				.andExpect(header().string(HttpHeaders.SET_COOKIE, containsString("user-token=access")))
-				.andExpect(jsonPath("$.accessToken").value("access")).andExpect(jsonPath("$.refreshToken").value("refresh"));
+				.andExpect(jsonPath("$.accessToken").value("access"))
+				.andExpect(jsonPath("$.refreshToken").value("refresh"));
 
 		verify(userService).register(any(UserApiRegisterRequest.class));
 	}
 }
-
