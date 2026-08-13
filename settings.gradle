@@ -2,3 +2,4 @@
 
 rootProject.name = 'stroke-rehabilitation'
 include 'backend'
+

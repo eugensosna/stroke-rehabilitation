@@ -88,9 +88,9 @@ tasks.register('npmRunBuild', NpmTask) {
 
 processResources {
   // dependsOn npmRunBuild
-  dependsOn copyFrontendToBackend
-  from "${project.projectDir}/../frontend/dist"
-  into "${project.projectDir}/src/main/resources/static"
+  // dependsOn copyFrontendToBackend
+  // from "${project.projectDir}/../frontend/dist"
+  // into "${project.projectDir}/src/main/resources/static"
 }
 
 tasks.withType(Test) {
