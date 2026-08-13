@@ -66,9 +66,9 @@ task buildFrontend(type: com.github.gradle.node.npm.task.NpmTask) {
 }
 
 task copyFrontendToBackend(type: Copy) {
-    dependsOn buildFrontend
-    from "${project.projectDir}/../frontend/dist"
-    into "${project.projectDir}/src/main/resources/static"
+    // dependsOn buildFrontend
+    // from "${project.projectDir}/../frontend/dist"
+    // into "${project.projectDir}/src/main/resources/static"
 }
 
 
