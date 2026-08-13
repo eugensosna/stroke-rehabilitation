@@ -17,10 +17,10 @@ import java.util.Map;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -29,7 +29,6 @@ import ua.edu.zsea.sosna.stroke.model.GameDTO;
 import ua.edu.zsea.sosna.stroke.service.GameService;
 import ua.edu.zsea.sosna.stroke.service.GameStatsService;
 import ua.edu.zsea.sosna.stroke.service.auth.UserService;
-import ua.edu.zsea.sosna.stroke.service.auth.jwtService;
 
 @WebMvcTest(controllers = GameResource.class)
 @AutoConfigureMockMvc(addFilters = false)
@@ -38,19 +37,17 @@ class GameResourceTest {
 	@Autowired
 	private MockMvc mockMvc;
 
-	private final ObjectMapper objectMapper = new ObjectMapper();
+	@Autowired
+	private ObjectMapper objectMapper;
 
-	@MockitoBean
+	@MockBean
 	private GameService gameService;
 
-	@MockitoBean
+	@MockBean
 	private GameStatsService gameStatsService;
 
-	@MockitoBean
+	@MockBean
 	private UserService userService;
-	 
-	@MockitoBean
-	private jwtService jwtService;
 
 	@Test
 	void getAllGames_returnsList() throws Exception {

@@ -62,14 +62,16 @@ stroke:
         fullname: User User
 management:
   health:
+    
     ping:
       enabled: true
-    # probes:
-      # enabled: true
+      
   endpoint:
     health:
+      show-details: always
       probes:
         enabled: true
+
 
 
 

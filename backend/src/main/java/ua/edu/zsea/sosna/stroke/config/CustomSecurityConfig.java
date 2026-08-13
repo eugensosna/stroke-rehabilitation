@@ -49,6 +49,7 @@ public class CustomSecurityConfig {
 					authz.requestMatchers(HttpMethod.OPTIONS, "/api/**").permitAll();
 
 					authz.requestMatchers("/api/auth/**").permitAll();
+					authz.requestMatchers("/actuator/health/ping").permitAll();
 					authz.requestMatchers("/api/**").authenticated();
 					authz.anyRequest().permitAll();
 				}).csrf(csrf -> csrf.disable()).build();
