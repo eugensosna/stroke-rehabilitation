@@ -102,7 +102,7 @@
                         ]">
                           {{ subItem.name }}
                           <span class="flex items-center gap-1 ml-auto">
-                            <span v-if="subItem.new" :class="[
+                            <span :class="[
                               'menu-dropdown-badge',
                               {
                                 'menu-dropdown-badge-active': isActive(
@@ -114,19 +114,6 @@
                               },
                             ]">
                               new
-                            </span>
-                            <span v-if="subItem.pro" :class="[
-                              'menu-dropdown-badge',
-                              {
-                                'menu-dropdown-badge-active': isActive(
-                                  subItem.path
-                                ),
-                                'menu-dropdown-badge-inactive': !isActive(
-                                  subItem.path
-                                ),
-                              },
-                            ]">
-                              pro
                             </span>
                           </span>
                         </router-link>
@@ -144,23 +131,16 @@
   </aside>
 </template>
 
-<script setup>
-import { ref, computed } from "vue";
+<script setup lang="ts">
+import { computed } from "vue";
 import { useRoute } from "vue-router";
 
 import {
   GridIcon,
   CalenderIcon,
-  UserCircleIcon,
-  ChatIcon,
-  MailIcon,
-  DocsIcon,
   PieChartIcon,
   ChevronDownIcon,
   HorizontalDots,
-  PageIcon,
-  TableIcon,
-  ListIcon,
   PlugInIcon,
 } from "../../icons";
 import SidebarWidget from "./SidebarWidget.vue";
@@ -255,8 +235,8 @@ const menuGroups = [
         icon: PlugInIcon,
         name: "Authentication",
         subItems: [
-          { name: "Signin", path: "/signin", pro: false },
-          { name: "Signup", path: "/signup", pro: false },
+          { name: "SignIn", path: "/signin", pro: false },
+          { name: "SignUp", path: "/signup", pro: false },
         ],
       },
       // ... Add other menu items here
@@ -264,9 +244,9 @@ const menuGroups = [
   },
 ];
 
-const isActive = (path) => route.path === path;
+const isActive = (path: string) => route.path === path;
 
-const toggleSubmenu = (groupIndex, itemIndex) => {
+const toggleSubmenu = (groupIndex: number, itemIndex: number) => {
   const key = `${groupIndex}-${itemIndex}`;
   openSubmenu.value = openSubmenu.value === key ? null : key;
 };
@@ -280,7 +260,7 @@ const isAnySubmenuRouteActive = computed(() => {
   );
 });
 
-const isSubmenuOpen = (groupIndex, itemIndex) => {
+const isSubmenuOpen = (groupIndex: number, itemIndex: number) => {
   const key = `${groupIndex}-${itemIndex}`;
   return (
     openSubmenu.value === key ||
@@ -291,15 +271,21 @@ const isSubmenuOpen = (groupIndex, itemIndex) => {
   );
 };
 
-const startTransition = (el) => {
-  el.style.height = "auto";
-  const height = el.scrollHeight;
-  el.style.height = "0px";
-  el.offsetHeight; // force reflow
-  el.style.height = height + "px";
+const startTransition = (el: Element | undefined) => {
+  if (!el) return;
+
+  const element = el as HTMLElement;
+  element.style.height = "auto";
+  const height = element.scrollHeight;
+  element.style.height = "0px";
+  // FIXME: search right type for el, with have property offsetHeight
+  // element.offsetHeight; // force reflow
+  element.style.height = `${height}px`;
 };
 
-const endTransition = (el) => {
-  el.style.height = "";
+const endTransition = (el: Element | undefined) => {
+  if (el) {
+    (el as HTMLElement).style.height = "";
+  }
 };
 </script>

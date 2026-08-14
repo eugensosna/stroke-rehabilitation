@@ -25,6 +25,7 @@ import ua.edu.zsea.sosna.stroke.model.auth.UserNewInitial;
 import ua.edu.zsea.sosna.stroke.repos.accessTokenRepository;
 import ua.edu.zsea.sosna.stroke.repos.UserRepository;
 import ua.edu.zsea.sosna.stroke.util.CustomCollectors;
+import ua.edu.zsea.sosna.stroke.util.NotFoundException;
 
 @Service
 // @NoArgsConstructor
@@ -54,8 +55,8 @@ public class UserService {
 				.orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED));
 
 		try {
-			authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
-					loginUser.email(), loginUser.password()));
+			authenticationManager
+					.authenticate(new UsernamePasswordAuthenticationToken(loginUser.email(), loginUser.password()));
 		} catch (final BadCredentialsException ex) {
 			throw new ResponseStatusException(HttpStatus.UNAUTHORIZED);
 		}
@@ -77,11 +78,8 @@ public class UserService {
 	}
 
 	public AuthResponse register(UserApiRegisterRequest user) {
-		var newItem = UserNewInitial.builder().email(user.email())
-				.fullname(user.fullname())
-				.password(user.password())
-				.role(Roles.USER.name())
-				.build();
+		var newItem = UserNewInitial.builder().email(user.email()).fullname(user.fullname()).password(user.password())
+				.role(Roles.USER.name()).build();
 		return register(newItem);
 
 	}

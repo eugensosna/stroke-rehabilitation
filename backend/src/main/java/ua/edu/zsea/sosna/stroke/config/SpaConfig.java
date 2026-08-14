@@ -27,7 +27,8 @@ public class SpaConfig implements WebMvcConfigurer {
                         }
 
                         // don't fallback for API calls or actuator
-                        if (resourcePath.startsWith("api/") || resourcePath.startsWith("actuator/")) {
+                        if (resourcePath.startsWith("api/") || resourcePath.startsWith("actuator/")
+                        		|| resourcePath.startsWith("swagger")) {
                             return null;
                         }
 

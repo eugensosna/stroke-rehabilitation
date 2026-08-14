@@ -1,5 +1,6 @@
 package ua.edu.zsea.sosna.stroke.rest;
 
+import org.springframework.boot.actuate.web.exchanges.HttpExchange.Principal;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -40,6 +41,10 @@ public class AuthentificationResource {
 		return ResponseEntity.ok("ok");
 		
 	}
+	@GetMapping("/username-principal")
+    public String getCurrentPrincipal(Principal principal) {
+        return "Current user: " + principal.getName();
+    }
 
 	
 	@PostMapping("/test")

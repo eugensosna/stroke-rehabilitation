@@ -13,7 +13,7 @@
   </admin-layout>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import AdminLayout from '../../components/layout/AdminLayout.vue'
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
 import { ref } from 'vue'
