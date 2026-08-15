@@ -49,7 +49,7 @@ jwt:
   access-token-expiration-second: 600
 stroke:
   cors:
-    allowed-origins: ${SPRING_ALLOWED_ORIGINS:-"http://localhost:5173, http://localhost:8080"}
+    allowed-origins: ${SPRING_ALLOWED_ORIGINS:http://localhost:5173, http://localhost:8080}
   init:
     users:
       - email: admin@admin.com

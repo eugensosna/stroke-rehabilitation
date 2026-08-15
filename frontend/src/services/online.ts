@@ -1,29 +1,18 @@
 // import { api } from "./api";
 
-import axios from 'axios'
-
-let baseURL = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? ''
-if (baseURL.endsWith('/')) {
-  baseURL = baseURL.slice(0, -1)
-}
-console.log('API Base URL for Health Check:', baseURL)
-export const api = axios.create({
-  baseURL: baseURL,
-  timeout: 10_000,
-  headers: { 'Content-Type': 'application/json' },
-})
+import { api } from './api'
 
 export const OnLineService = {
   async checkIsOnline(): Promise<boolean> {
     let result = false
     try {
-      const response = await api.get('/actuator/health')
+      const response = await api.get('/auth/ping')
       if (response.status === 200) {
         result = true
       }
     } catch (error) {
       console.error('OnLineService.checkIsOnline error:', error)
-      return false
+      return result
     }
 
     return result

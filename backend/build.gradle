@@ -14,6 +14,10 @@ java {
   }
 }
 
+springBoot {
+  mainClass = 'ua.ua.edu.zsea.sosna.stroke.StrokeApplication'
+}
+
 bootRun {
   environment SPRING_PROFILES_ACTIVE: environment.SPRING_PROFILES_ACTIVE ?: 'local'
 }
@@ -47,52 +51,6 @@ dependencies {
   implementation 'org.springframework.boot:spring-boot-starter-actuator'
 
   testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-}
-
-node {
-  download.set(true)
-  version.set('24.16.0')
-  workDir = file("${project.projectDir}/../frontend/.gradle/nodejs")
-  npmWorkDir = file("${project.projectDir}/../frontend/.gradle/npm")
-    nodeProjectDir = file("${project.projectDir}/../frontend")
-}
-
-
-task npmInstallFrontend(type: com.github.gradle.node.npm.task.NpmTask) {
-    args = ['install']
-}
-
-task buildFrontend(type: com.github.gradle.node.npm.task.NpmTask) {
-    dependsOn npmInstallFrontend
-    args = ['run', 'build']
-}
-
-task copyFrontendToBackend(type: Copy) {
-    // dependsOn buildFrontend
-    // from "${project.projectDir}/../frontend/dist"
-    // into "${project.projectDir}/src/main/resources/static"
-}
-
-
-tasks.register('npmRunBuild', NpmTask) {
-  // args = ['run', 'build']
-  args = ['install']
-  // dependsOn npmInstall
-
-  // inputs.files(fileTree('node_modules'))
-  // inputs.files(fileTree('src/main/webapp'))
-  // inputs.file('.env')
-  // inputs.file('package.json')
-  // inputs.file('tsconfig.json')
-  // inputs.file('webpack.config.js')
-  // outputs.dir(layout.buildDirectory.dir('resources/main/static'))
-}
-
-processResources {
-  // dependsOn npmRunBuild
-  // dependsOn copyFrontendToBackend
-  // from "${project.projectDir}/../frontend/dist"
-  // into "${project.projectDir}/src/main/resources/static"
 }
 
 tasks.withType(Test) {

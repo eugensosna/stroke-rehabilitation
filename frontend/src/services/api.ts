@@ -21,11 +21,20 @@ api.interceptors.request.use((config) => {
 })
 api.interceptors.request.use(
   (request) => {
-    console.log('Axios Outgoing Request:', request.method?.toUpperCase(), request.url, request.data)
+    if (import.meta.env.DEV) {
+      console.log(
+        'Axios Outgoing Request:',
+        request.method?.toUpperCase(),
+        request.url,
+        request.data,
+      )
+    }
     return request
   },
   (error) => {
-    console.error('Axios Request Error:', error)
+    if (import.meta.env.DEV) {
+      console.error('Axios Request Error:', error)
+    }
     return Promise.reject(error)
   },
 )
@@ -33,7 +42,9 @@ api.interceptors.request.use(
 // Redirect to login on 401
 api.interceptors.response.use(
   (response) => {
-    console.log('Axios Incoming Response:', response.status, response.data)
+    if (import.meta.env.DEV) {
+      console.log('Axios Incoming Response:', response.status, response.data)
+    }
     // Unwrap ApiResponse<T> envelope from Spring Boot backend
     if (
       response.data !== null &&
@@ -47,11 +58,13 @@ api.interceptors.response.use(
     return response
   },
   async (error) => {
-    console.error(
-      'Axios Error Object:',
-      error.response?.status,
-      error.response?.data || error.message,
-    )
+    if (import.meta.env.DEV) {
+      console.error(
+        'Axios Error Object:',
+        error.response?.status,
+        error.response?.data || error.message,
+      )
+    }
     if (error.response?.status === 401) {
       sessionStorage.removeItem('token')
       const refreshToken = sessionStorage.getItem('refreshToken')
@@ -75,15 +88,19 @@ api.interceptors.response.use(
 
 axios.interceptors.response.use(
   (response) => {
-    console.log('Axios Incoming Response:', response.status, response.data)
+    if (import.meta.env.DEV) {
+      console.log('Axios Incoming Response:', response.status, response.data)
+    }
     return response
   },
   (error) => {
-    console.error(
-      'Axios Error Object:',
-      error.response?.status,
-      error.response?.data || error.message,
-    )
+    if (import.meta.env.DEV) {
+      console.error(
+        'Axios Error Object:',
+        error.response?.status,
+        error.response?.data || error.message,
+      )
+    }
     return Promise.reject(error)
   },
 )
