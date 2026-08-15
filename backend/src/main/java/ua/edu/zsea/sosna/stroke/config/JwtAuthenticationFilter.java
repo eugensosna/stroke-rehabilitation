@@ -3,6 +3,7 @@ package ua.edu.zsea.sosna.stroke.config;
 import java.io.IOException;
 import java.time.Instant;
 
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -33,7 +34,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
 			throws ServletException, IOException {
 
-		if (SecurityContextHolder.getContext().getAuthentication() != null) {
+		var authentication = SecurityContextHolder.getContext().getAuthentication();
+
+		if (authentication != null && !(authentication instanceof AnonymousAuthenticationToken)) {
 			filterChain.doFilter(request, response);
 			return;
 		}
@@ -57,10 +60,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 			}
 			username = decJWT.getSubject();
 
-			// Check expiration early (before DB query)
 			if (jwtService.isTokenExpired(decJWT)) {
-				log.debug("Invalid or expired token for user: {} expiredAt: {} an now is: {}", username,
-						decJWT.getExpiresAtAsInstant().toString(), Instant.now().toString());
+				log.debug("Invalid or expired token for user: {} expiredAt: {} and now is: {}", username,
+								decJWT.getExpiresAtAsInstant().toString(), Instant.now().toString());
 				filterChain.doFilter(request, response);
 				return;
 			}
@@ -71,20 +73,17 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 			return;
 		}
 
-		if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-
-			// load form db
+		var currentAuthentication = SecurityContextHolder.getContext().getAuthentication();
+		if (username != null
+				&& (currentAuthentication == null || currentAuthentication instanceof AnonymousAuthenticationToken)) {
 			UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 
 			UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(userDetails, null,
 					userDetails.getAuthorities());
 			authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 			SecurityContextHolder.getContext().setAuthentication(authToken);
-
 		}
 
 		filterChain.doFilter(request, response);
-
 	}
-
 }

@@ -46,12 +46,11 @@ public class UserResource {
 	@GetMapping("/profile")
 	public ResponseEntity<UserProfileResponse> getProfile(Authentication authentication) {
 		UserProfileResponse result = null;
-	
 		String username = authentication.getName();
-		if (userService.nameExists(username)) {
-			var user = userService.findByName(username);
+//		if (userService.nameExists(username)) {
+			var user = userService.findByEmail(username);
 			result = UserProfileResponse.from(user);
-		}
+//		}
 		return ResponseEntity.ok(result);
 	}
 

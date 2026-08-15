@@ -59,7 +59,7 @@
         </button>
       </div>
     </div>
-    <Modal v-if="isProfileInfoModal" @close="isProfileInfoModal = false">
+    <ModalView v-if="isProfileInfoModal" @close="isProfileInfoModal = false">
       <template #body>
         <div
           class="no-scrollbar relative w-full max-w-[700px] overflow-y-auto rounded-3xl bg-white p-4 dark:bg-gray-900 lg:p-11"
@@ -246,14 +246,17 @@
           </form>
         </div>
       </template>
-    </Modal>
+    </ModalView>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import Modal from './Modal.vue'
+import ModalView from './ModalView.vue';
 
+defineSlots<{
+  body(props?: object): unknown
+}>()
 const isProfileInfoModal = ref(false)
 
 const saveProfile = () => {

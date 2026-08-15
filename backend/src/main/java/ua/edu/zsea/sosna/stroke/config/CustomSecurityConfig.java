@@ -15,6 +15,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -25,6 +26,12 @@ import lombok.extern.slf4j.Slf4j;
 @EnableWebSecurity
 @Slf4j
 public class CustomSecurityConfig {
+	private final JwtAuthenticationFilter jwtAuthenticationFilter;
+
+	public CustomSecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
+		this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+	}
+
 	@Value("${stroke.cors.allowed-origins}")
 	String corsAllowesOrigins;
 
@@ -39,21 +46,23 @@ public class CustomSecurityConfig {
 	}
 
 	@Bean
-	public SecurityFilterChain securityFilterChain(final HttpSecurity http) {
-
-		var result = http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-				.cors(cors -> cors.configurationSource(corsConfigurationSource())).authorizeHttpRequests(authz -> {
-					// authz.anyRequest().authenticated();
+	public SecurityFilterChain securityFilterChain(final HttpSecurity http) throws Exception {
+		return http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+				.cors(cors -> cors.configurationSource(corsConfigurationSource()))
+				.authorizeHttpRequests(authz -> {
 					authz.requestMatchers(HttpMethod.OPTIONS, "/api/**").permitAll();
-
 					authz.requestMatchers("/api/auth/**").permitAll();
+					authz.requestMatchers("/assets/**", "/css/**", "/js/**", "/public/**").permitAll();
 					authz.requestMatchers("/actuator/health/ping").permitAll();
 					authz.requestMatchers("/api/**").authenticated();
-					authz.anyRequest().permitAll();
-				}).csrf(csrf -> csrf.disable()).build();
-		return result;
-		// return result;
-
+					authz.requestMatchers("/assets/**").permitAll();
+					authz.requestMatchers("/static/**").permitAll();
+					
+					authz.anyRequest().authenticated();
+				})
+				.csrf(csrf -> csrf.disable())
+				.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+				.build();
 	}
 
 	@Bean
@@ -78,5 +87,4 @@ public class CustomSecurityConfig {
 		log.info("cors set for domain {}", corsToSet);
 		return source;
 	}
-
 }
