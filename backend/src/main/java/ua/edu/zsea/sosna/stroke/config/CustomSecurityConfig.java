@@ -50,15 +50,18 @@ public class CustomSecurityConfig {
 		return http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 				.cors(cors -> cors.configurationSource(corsConfigurationSource()))
 				.authorizeHttpRequests(authz -> {
-					authz.requestMatchers(HttpMethod.OPTIONS, "/api/**").permitAll();
+					// Public API endpoints
+					authz.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll();
 					authz.requestMatchers("/api/auth/**").permitAll();
-					authz.requestMatchers("/assets/**", "/css/**", "/js/**", "/public/**").permitAll();
-					authz.requestMatchers("/actuator/health/ping").permitAll();
+
+					// Authenticated API endpoints
 					authz.requestMatchers("/api/**").authenticated();
-					authz.requestMatchers("/assets/**").permitAll();
-					authz.requestMatchers("/static/**").permitAll();
-					
-					authz.anyRequest().authenticated();
+					authz.requestMatchers("/actuator/health/ping").permitAll();
+					authz.requestMatchers("/actuator/**").authenticated();
+
+					// Static resources & SPA - permit everything else
+					// (index.html, favicon.ico, /assets/**, /images/**, SPA forward routes, swagger, actuator)
+					authz.anyRequest().permitAll();
 				})
 				.csrf(csrf -> csrf.disable())
 				.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
