@@ -9,7 +9,7 @@
       </div>
 
       <!-- Modal -->
-      <Modal v-if="isOpen" @close="closeModal = false">
+      <ModalView v-if="isOpen" @close="closeModal = false">
         <template #body>
           <div
             class="no-scrollbar relative w-full max-w-[700px] overflow-y-auto rounded-3xl bg-white p-4 dark:bg-gray-900 lg:p-11"
@@ -115,7 +115,7 @@
             </div>
           </div>
         </template>
-      </Modal>
+      </ModalView>
       <!-- <Teleport to="body">
         <div v-if="isOpen" class="modal-backdrop" @click="closeModal"></div>
         <div v-if="isOpen" class="modal">
@@ -228,7 +228,7 @@ import FullCalendar from '@fullcalendar/vue3'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
-import Modal from '@/components/profile/Modal.vue'
+import ModalView from '@/components/profile/ModalView.vue'
 
 const calendarRef = ref(null)
 const isOpen = ref(false)

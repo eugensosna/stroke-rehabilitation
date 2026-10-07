@@ -9,6 +9,8 @@
   </div>
 </template>
 
-<script setup>
-// No additional setup needed
+<script setup lang="ts">
+defineSlots<{
+  body(props?: object): unknown
+}>()
 </script>

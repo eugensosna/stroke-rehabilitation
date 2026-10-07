@@ -54,7 +54,7 @@
 <script setup lang="ts">
 import { UserCircleIcon, ChevronDownIcon, LogoutIcon, SettingsIcon, InfoCircleIcon } from '@/icons'
 import { RouterLink } from 'vue-router'
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { AuthStore } from '@/store/auth_store'
 import { userStore } from '@/store/userInfo_store';
 import type { userInfo } from '@/types/user';
@@ -66,13 +66,21 @@ const authStore = AuthStore();
 const dropdownOpen = ref(false)
 const dropdownRef = ref<HTMLElement | null>(null)
 
-const menuItems = [
-  { href: '/profile', icon: UserCircleIcon, text: 'Edit profile' },
-  { href: '/chat', icon: SettingsIcon, text: 'Account settings' },
-  { href: '/profile', icon: InfoCircleIcon, text: 'Support' },
-]
+const currentUser = ref<userInfo | null>(null);
 
-const currentUser = ref<userInfo | null>(null)
+const menuItems = computed(() => {
+  let profilepath = '/profile';
+  if (currentUser.value) {
+    profilepath = profilepath + "/" + currentUser.value.id.toString();
+  }
+
+  return [
+    { href: profilepath, icon: UserCircleIcon, text: 'Edit profile' },
+    { href: '/chat', icon: SettingsIcon, text: 'Account settings' },
+    { href: profilepath, icon: InfoCircleIcon, text: 'Support' },
+  ];
+});
+
 
 onMounted(async () => {
   try {

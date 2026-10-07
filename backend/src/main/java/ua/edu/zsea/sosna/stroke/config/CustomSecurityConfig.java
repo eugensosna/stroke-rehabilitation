@@ -15,6 +15,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -25,6 +26,12 @@ import lombok.extern.slf4j.Slf4j;
 @EnableWebSecurity
 @Slf4j
 public class CustomSecurityConfig {
+	private final JwtAuthenticationFilter jwtAuthenticationFilter;
+
+	public CustomSecurityConfig(JwtAuthenticationFilter jwtAuthenticationFilter) {
+		this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+	}
+
 	@Value("${stroke.cors.allowed-origins}")
 	String corsAllowesOrigins;
 
@@ -39,28 +46,32 @@ public class CustomSecurityConfig {
 	}
 
 	@Bean
-	public SecurityFilterChain securityFilterChain(final HttpSecurity http) {
-
-		var result = http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+	public SecurityFilterChain securityFilterChain(final HttpSecurity http) throws Exception {
+		return http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 				.cors(cors -> cors.configurationSource(corsConfigurationSource())).authorizeHttpRequests(authz -> {
-					// authz.anyRequest().authenticated();
-					authz.requestMatchers(HttpMethod.OPTIONS, "/api/**").permitAll();
-
+					// Public API endpoints
+					authz.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll();
 					authz.requestMatchers("/api/auth/**").permitAll();
-					authz.requestMatchers("/actuator/health/ping").permitAll();
-					authz.requestMatchers("/api/**").authenticated();
-					authz.anyRequest().permitAll();
-				}).csrf(csrf -> csrf.disable()).build();
-		return result;
-		// return result;
+					authz.requestMatchers("/api/auth/ping").permitAll();
 
+					// Authenticated API endpoints
+					authz.requestMatchers("/api/**").authenticated();
+					authz.requestMatchers("/actuator/health/ping").permitAll();
+					authz.requestMatchers("/actuator/**").authenticated();
+
+					// Static resources & SPA - permit everything else
+					// (index.html, favicon.ico, /assets/**, /images/**, SPA forward routes,
+					// swagger, actuator)
+					authz.anyRequest().permitAll();
+				}).csrf(csrf -> csrf.disable())
+				.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class).build();
 	}
 
 	@Bean
 	public CorsConfigurationSource corsConfigurationSource() {
 		String corsToSet = "*";
 		if (corsAllowesOrigins != null && !corsAllowesOrigins.isBlank()) {
-			corsToSet = corsAllowesOrigins;
+			corsToSet = corsAllowesOrigins.replace("\"", "").trim();
 		}
 
 		List<String> corsList = Arrays.stream(corsToSet.split(",")).map(t -> t.trim()).toList();
@@ -68,15 +79,16 @@ public class CustomSecurityConfig {
 			corsList.add(corsToSet);
 		}
 
-		log.info("set cors to {}", corsList.toString());
+		log.info("set cors to '{}'", corsList.toString());
+		corsList.forEach(t -> log.info("set cors to '{}'", t));
 		CorsConfiguration configuration = new CorsConfiguration();
 		configuration.setAllowedOrigins(corsList);
 		configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-		configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+		configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Requested-With", "Accept"));
+		configuration.setAllowCredentials(true);
 		UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
 		source.registerCorsConfiguration("/**", configuration);
 		log.info("cors set for domain {}", corsToSet);
 		return source;
 	}
-
 }

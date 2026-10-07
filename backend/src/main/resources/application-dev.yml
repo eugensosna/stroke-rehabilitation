@@ -2,11 +2,10 @@ logging:
   console:
     enabled: true
   level:
-    org.springframework.security: DEBUG
-    org.springframework.security.web.FilterChainProxy: DEBUG
+    org.springframework.security: trace
+    org.springframework.security.web.FilterChainProxy: trace
+    org.hibernate.SQL: debug
 spring:
-  profiles:
-    active: ${SPRING_PROFILES_ACTIVE:default}
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/stroke}
     username: ${SPRING_DATASOURCE_USERNAME:postgres}
@@ -15,10 +14,14 @@ spring:
       connection-timeout: 30000
       maximum-pool-size: 10
   jpa:
+    show-sql: true
+    
     hibernate:
+      format_sql: true 
       ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:update}
     open-in-view: false
     properties:
+      
       hibernate:
         jdbc:
           lob:
