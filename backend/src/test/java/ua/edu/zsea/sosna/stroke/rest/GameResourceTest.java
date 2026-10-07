@@ -29,6 +29,7 @@ import ua.edu.zsea.sosna.stroke.model.GameDTO;
 import ua.edu.zsea.sosna.stroke.service.GameService;
 import ua.edu.zsea.sosna.stroke.service.GameStatsService;
 import ua.edu.zsea.sosna.stroke.service.auth.UserService;
+import ua.edu.zsea.sosna.stroke.service.auth.jwtService;
 
 @org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest(controllers = GameResource.class)
 @EnableAutoConfiguration
@@ -38,8 +39,10 @@ class GameResourceTest {
 	@Autowired
 	private MockMvc mockMvc;
 
-	@Autowired
-	private ObjectMapper objectMapper;
+	private final ObjectMapper objectMapper = new ObjectMapper();
+
+	@MockitoBean
+	private jwtService jwtService;
 
 	@MockitoBean
 	private GameService gameService;
@@ -106,7 +109,7 @@ class GameResourceTest {
 		when(gameStatsService.getGameStatsValues()).thenReturn(Map.of(1L, 2L));
 
 		mockMvc.perform(get("/api/games/statisticValues")).andExpect(status().isOk())
-				.andExpect(jsonPath("$.\"1\"").value(2));
+				.andExpect(jsonPath("$['1']").value(2));
 	}
 
 	@Test
@@ -114,6 +117,6 @@ class GameResourceTest {
 		when(userService.getUserValues()).thenReturn(Map.of(1L, 2L));
 
 		mockMvc.perform(get("/api/games/userValues")).andExpect(status().isOk())
-				.andExpect(jsonPath("$.\"1\"").value(2));
+				.andExpect(jsonPath("$['1']").value(2));
 	}
 }

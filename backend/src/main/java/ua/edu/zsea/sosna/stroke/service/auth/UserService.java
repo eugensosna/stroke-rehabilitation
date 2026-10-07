@@ -77,7 +77,11 @@ public class UserService {
 
 	}
 
+	@Transactional
 	public AuthResponse register(UserApiRegisterRequest user) {
+		if (userRepository.existsByEmail(user.email())) {
+			throw new ResponseStatusException(HttpStatus.CONFLICT, "user with this email already exists");
+		}
 		var newItem = UserNewInitial.builder().email(user.email()).fullname(user.fullname()).password(user.password())
 				.role(Roles.USER.name()).build();
 		return register(newItem);

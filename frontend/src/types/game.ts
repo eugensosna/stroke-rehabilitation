@@ -51,3 +51,33 @@ export interface MotionResult {
   distance: number;       // довжина руху
   speed: number;          // швидкість (distance / durationMs)
 }
+
+// Рух, що відправляється на сервер. Координати нормалізовані (0..1).
+export interface GameMotionRecord {
+  startOffsetMs: number; // зсув від початку сесії
+  durationMs: number;
+  startX: number;
+  startY: number;
+  endX: number;
+  endY: number;
+}
+
+export interface GameSessionRequest {
+  gameName: string;
+  start: string; // ISO-8601
+  durationMs: number;
+  motions: GameMotionRecord[];
+}
+
+export interface GameSessionResponse {
+  id: number;
+  gameName: string;
+  start: string;
+  duration: number; // секунди
+  motionsCount: number;
+  totalDistance: number;
+  averageDistance: number;
+  maxDistance: number;
+  averageSpeed: number;
+  maxSpeed: number;
+}

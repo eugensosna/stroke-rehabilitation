@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
-import type { AuthResponse,  LoginCredentials } from "../types";
+import type { AuthResponse, LoginCredentials, RegisterRequest } from "../types";
 import { AuthService } from "../services/auth_service";
 
 export const AuthStore = defineStore("auth", () => {
@@ -35,10 +35,15 @@ export const AuthStore = defineStore("auth", () => {
 
   async function login(credentials: LoginCredentials): Promise<void> {
     const response = await AuthService.login(credentials);
-    sessionStorage.setItem("token", response.accessToken);
-    sessionStorage.setItem('refreshToken', response.refreshToken)
-    sessionStorage.setItem("authToken", JSON.stringify(response));
-    authToken.value = response;
+    // профіль попереднього користувача більше не актуальний
+    sessionStorage.removeItem('userInfo')
+    await saveAuthToken(response)
+  }
+
+  async function register(request: RegisterRequest): Promise<void> {
+    const response = await AuthService.register(request)
+    sessionStorage.removeItem('userInfo')
+    await saveAuthToken(response)
   }
 
   async function saveAuthToken(param: AuthResponse | null) {
@@ -60,6 +65,7 @@ export const AuthStore = defineStore("auth", () => {
     sessionStorage.removeItem("token");
     sessionStorage.removeItem('refreshToken')
     sessionStorage.removeItem("authToken");
+    sessionStorage.removeItem('userInfo')
     authToken.value = null;
   }
 
@@ -86,5 +92,5 @@ export const AuthStore = defineStore("auth", () => {
 
   });
 
-  return { authToken, isAuthenticated, login, logout, userName, refreshToken, saveAuthToken }
+  return { authToken, isAuthenticated, login, register, logout, userName, refreshToken, saveAuthToken }
 });

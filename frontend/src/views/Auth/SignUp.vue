@@ -103,6 +103,12 @@
               </div>
               <form @submit.prevent="handleSubmit">
                 <div class="space-y-5">
+                  <div
+                    v-if="errorMessage"
+                    class="rounded-lg border border-error-500 bg-error-50 px-4 py-3 text-sm text-error-600 dark:bg-error-500/15 dark:text-error-500"
+                  >
+                    {{ errorMessage }}
+                  </div>
                   <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
                     <!-- First Name -->
                     <div class="sm:col-span-1">
@@ -267,9 +273,10 @@
                   <div>
                     <button
                       type="submit"
-                      class="flex items-center justify-center w-full px-4 py-3 text-sm font-medium text-white transition rounded-lg bg-brand-500 shadow-theme-xs hover:bg-brand-600"
+                      :disabled="isSubmitting"
+                      class="flex items-center justify-center w-full px-4 py-3 text-sm font-medium text-white transition rounded-lg bg-brand-500 shadow-theme-xs hover:bg-brand-600 disabled:opacity-60"
                     >
-                      Sign Up
+                      {{ isSubmitting ? 'Signing up...' : 'Sign Up' }}
                     </button>
                   </div>
                 </div>
@@ -313,27 +320,59 @@
 import FullScreenLayout from '@/components/layout/FullScreenLayout.vue'
 import CommonGridShape from '@/components/common/CommonGridShape.vue'
 import { ref } from 'vue'
-import { RouterLink } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
+import axios from 'axios'
+import { AuthStore } from '@/store/auth_store'
 
+const router = useRouter()
 const firstName = ref('')
 const lastName = ref('')
 const email = ref('')
 const password = ref('')
 const showPassword = ref(false)
 const agreeToTerms = ref(false)
+const errorMessage = ref<string | null>(null)
+const isSubmitting = ref(false)
+
+// має збігатися з валідацією UserApiRegisterRequest на бекенді
+const MIN_PASSWORD_LENGTH = 6
 
 const togglePasswordVisibility = () => {
   showPassword.value = !showPassword.value
 }
 
-const handleSubmit = () => {
-  // Implement form submission logic here
-  console.log('Form submitted', {
-    firstName: firstName.value,
-    lastName: lastName.value,
-    email: email.value,
-    password: password.value,
-    agreeToTerms: agreeToTerms.value,
-  })
+const validate = (): string | null => {
+  if (!firstName.value.trim() || !lastName.value.trim()) return 'Enter your first and last name.'
+  if (!email.value.trim()) return 'Enter your email.'
+  if (password.value.length < MIN_PASSWORD_LENGTH)
+    return `Password must be at least ${MIN_PASSWORD_LENGTH} characters.`
+  if (!agreeToTerms.value) return 'You must accept the Terms and Conditions.'
+  return null
+}
+
+const handleSubmit = async () => {
+  errorMessage.value = validate()
+  if (errorMessage.value) return
+
+  isSubmitting.value = true
+  try {
+    await AuthStore().register({
+      fullname: `${firstName.value.trim()} ${lastName.value.trim()}`,
+      email: email.value.trim(),
+      password: password.value,
+    })
+    await router.push('/')
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.status === 409) {
+      errorMessage.value = 'A user with this email already exists. Please sign in.'
+    } else if (axios.isAxiosError(error) && error.response?.status === 400) {
+      errorMessage.value = 'Please check the entered data.'
+    } else {
+      errorMessage.value = 'Sign up failed. Please try again later.'
+    }
+    console.error('Sign up failed', error)
+  } finally {
+    isSubmitting.value = false
+  }
 }
 </script>

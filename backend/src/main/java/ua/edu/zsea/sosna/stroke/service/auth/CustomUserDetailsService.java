@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import lombok.AllArgsConstructor;
 import ua.edu.zsea.sosna.stroke.domain.User;
+import ua.edu.zsea.sosna.stroke.model.Roles;
 import ua.edu.zsea.sosna.stroke.repos.UserRepository;
 
 @Service
@@ -22,7 +23,8 @@ public class CustomUserDetailsService implements org.springframework.security.co
 		org.springframework.security.core.userdetails.User result = null;
 		User item = userRepository.findByEmail(username).orElseThrow(()-> new UsernameNotFoundException(username));
 		if (item!=null) {
-			Collection<GrantedAuthority> roles = List.of(new SimpleGrantedAuthority("USER"));
+			String role = item.getRole() == null ? Roles.USER.name() : item.getRole().name();
+			Collection<GrantedAuthority> roles = List.of(new SimpleGrantedAuthority(role));
 			result = new org.springframework.security.core.userdetails.User(
 					item.getEmail(),
 					item.getPassword(),

@@ -66,6 +66,10 @@
                 </div>
                 <form @submit.prevent="handleSubmit">
                   <div class="space-y-5">
+                    <div v-if="errorMessage"
+                      class="rounded-lg border border-error-500 bg-error-50 px-4 py-3 text-sm text-error-600 dark:bg-error-500/15 dark:text-error-500">
+                      {{ errorMessage }}
+                    </div>
                     <!-- Email -->
                     <div>
                       <label for="email" class="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400">
@@ -129,9 +133,9 @@
                     </div>
                     <!-- Button -->
                     <div>
-                      <button type="submit"
-                        class="flex items-center justify-center w-full px-4 py-3 text-sm font-medium text-white transition rounded-lg bg-brand-500 shadow-theme-xs hover:bg-brand-600">
-                        Sign In
+                      <button type="submit" :disabled="isSubmitting"
+                        class="flex items-center justify-center w-full px-4 py-3 text-sm font-medium text-white transition rounded-lg bg-brand-500 shadow-theme-xs hover:bg-brand-600 disabled:opacity-60">
+                        {{ isSubmitting ? 'Signing in...' : 'Sign In' }}
                       </button>
                     </div>
                   </div>
@@ -166,36 +170,47 @@
 </template>
 
 <script setup lang="ts">
-
-
 import { ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import axios from 'axios'
 import CommonGridShape from '@/components/common/CommonGridShape.vue'
 import FullScreenLayout from '@/components/layout/FullScreenLayout.vue'
 import { AuthStore } from '@/store/auth_store'
-import router from '@/router'
+
+const route = useRoute()
+const router = useRouter()
 const email = ref('')
 const password = ref('')
 const showPassword = ref(false)
 const keepLoggedIn = ref(false)
-
+const errorMessage = ref<string | null>(null)
+const isSubmitting = ref(false)
 
 const togglePasswordVisibility = () => {
   showPassword.value = !showPassword.value
 }
 
-const handleSubmit = () => {
-
-  // Handle form submission
-  console.log('Form submitted', {
-    email: email.value,
-    password: password.value,
-    keepLoggedIn: keepLoggedIn.value,
-  });
-  const credentials = {
-    email: email.value,
-    password: password.value,
-  };
-  AuthStore().login(credentials);
-  router.push("/");
+const handleSubmit = async () => {
+  errorMessage.value = null
+  if (!email.value || !password.value) {
+    errorMessage.value = 'Enter email and password.'
+    return
+  }
+  isSubmitting.value = true
+  try {
+    await AuthStore().login({ email: email.value.trim(), password: password.value })
+    // повертаємо користувача туди, звідки його перенаправили на вхід
+    const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : '/'
+    await router.push(redirect.startsWith('/') ? redirect : '/')
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.status === 401) {
+      errorMessage.value = 'Invalid email or password.'
+    } else {
+      errorMessage.value = 'Sign in failed. Please try again later.'
+    }
+    console.error('Sign in failed', error)
+  } finally {
+    isSubmitting.value = false
+  }
 }
 </script>

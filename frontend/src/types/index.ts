@@ -4,6 +4,11 @@ export interface LoginCredentials {
   email: string
   password: string
 }
+export interface RegisterRequest {
+  fullname: string
+  email: string
+  password: string
+}
 export interface AuthResponse {
   tokenType: string,
   accessToken: string

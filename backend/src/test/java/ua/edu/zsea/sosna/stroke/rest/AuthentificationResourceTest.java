@@ -14,6 +14,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.health.actuate.endpoint.HealthEndpoint;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.HttpHeaders;
@@ -28,6 +29,7 @@ import ua.edu.zsea.sosna.stroke.model.auth.UserApiRegisterRequest;
 import ua.edu.zsea.sosna.stroke.model.auth.UserApiRegisterRequestDto;
 import ua.edu.zsea.sosna.stroke.model.auth.UserLoginRequest;
 import ua.edu.zsea.sosna.stroke.service.auth.UserService;
+import ua.edu.zsea.sosna.stroke.service.auth.jwtService;
 
 @WebMvcTest(controllers = AuthentificationResource.class)
 @EnableAutoConfiguration
@@ -37,8 +39,13 @@ class AuthentificationResourceTest {
 	@Autowired
 	private MockMvc mockMvc;
 
-	@Autowired
-	private ObjectMapper objectMapper;
+	private final ObjectMapper objectMapper = new ObjectMapper();
+
+	@MockitoBean
+	private jwtService jwtService;
+
+	@MockitoBean
+	private HealthEndpoint healthEndpoint;
 
 	@MockitoBean
 	private UserService userService;
@@ -85,12 +92,28 @@ class AuthentificationResourceTest {
 				.thenReturn(AuthResponse.of("access", "refresh", 123L));
 
 		mockMvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON).content(
-				objectMapper.writeValueAsString(new UserApiRegisterRequest("User User", "u@example.com", "pw"))))
+				objectMapper.writeValueAsString(new UserApiRegisterRequest("User User", "u@example.com", "password"))))
 				.andExpect(status().isOk())
 				.andExpect(header().string(HttpHeaders.SET_COOKIE, containsString("user-token=access")))
 				.andExpect(jsonPath("$.accessToken").value("access"))
 				.andExpect(jsonPath("$.refreshToken").value("refresh"));
 
 		verify(userService).register(any(UserApiRegisterRequest.class));
+	}
+
+	@Test
+	void register_rejectsInvalidEmail() throws Exception {
+		mockMvc.perform(post("/api/auth/register").contentType(MediaType.APPLICATION_JSON).content(
+				objectMapper.writeValueAsString(new UserApiRegisterRequest("User User", "not-an-email", "password"))))
+				.andExpect(status().isBadRequest());
+	}
+
+	@Test
+	void refreshToken_readsTokenFromJsonBody() throws Exception {
+		when(userService.refreshToken("refresh-1")).thenReturn(AuthResponse.of("access2", "refresh2", 123L));
+
+		mockMvc.perform(post("/api/auth/refreshToken").contentType(MediaType.APPLICATION_JSON)
+				.content("{\"refreshToken\":\"refresh-1\"}")).andExpect(status().isOk())
+				.andExpect(jsonPath("$.accessToken").value("access2"));
 	}
 }

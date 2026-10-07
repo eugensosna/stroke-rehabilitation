@@ -1,7 +1,7 @@
 package ua.edu.zsea.sosna.stroke.rest;
 
-import org.springframework.boot.actuate.web.exchanges.HttpExchange.Principal;
-import org.springframework.boot.health.actuate.*;
+import java.security.Principal;
+
 import org.springframework.boot.health.actuate.endpoint.HealthDescriptor;
 import org.springframework.boot.health.actuate.endpoint.HealthEndpoint;
 import org.springframework.boot.health.contributor.Status;
@@ -15,9 +15,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import ua.edu.zsea.sosna.stroke.model.auth.AuthResponse;
+import ua.edu.zsea.sosna.stroke.model.auth.RefreshTokenRequest;
 import ua.edu.zsea.sosna.stroke.model.auth.UserApiRegisterRequest;
 import ua.edu.zsea.sosna.stroke.model.auth.UserApiRegisterRequestDto;
 import ua.edu.zsea.sosna.stroke.model.auth.UserLoginRequest;
@@ -91,14 +93,14 @@ public class AuthentificationResource {
 
 	@PostMapping("/refreshToken")
 	@Transactional
-	public ResponseEntity<AuthResponse> refreshToken(@RequestBody String refreshToken) {
-		var result = userService.refreshToken(refreshToken);
+	public ResponseEntity<AuthResponse> refreshToken(@RequestBody @Valid RefreshTokenRequest request) {
+		var result = userService.refreshToken(request.refreshToken());
 		return ResponseEntity.ok().body(result);
 	}
 
 	@PostMapping("/register")
 	@Transactional
-	public ResponseEntity<AuthResponse> register(@RequestBody UserApiRegisterRequest newUser) {
+	public ResponseEntity<AuthResponse> register(@RequestBody @Valid UserApiRegisterRequest newUser) {
 		var result = userService.register(newUser);
 		ResponseCookie cookieToken = ResponseCookie.from("user-token", result.accessToken()).httpOnly(true) // Protects
 																											// against

@@ -7,7 +7,9 @@ import AdminLayout from '@/components/layout/AdminLayout.vue';
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue';
 import { WristTracker } from '@/composables/WristTracker';
 import { GameArcade } from '@/composables/useGame';
-import type { MotionResult, Point2D } from '@/types/game';
+import type { GameMotionRecord, GameSessionRequest, MotionResult, Point2D } from '@/types/game';
+import { AuthStore } from '@/store/auth_store';
+import { GameSessionService } from '@/services/game_session_service';
 
 
 const currentPageTitle = ref("Video test");
@@ -26,6 +28,13 @@ let cameraInstance: Camera | null = null
 let handsInstance: Hands | null = null
 const isStreaming = ref<boolean>(false);
 const isGameRunning = ref<boolean>(false);
+
+const GAME_NAME = 'arkade'
+const authStore = AuthStore()
+// Початок поточної ігрової сесії: wall-clock для сервера і performance.now() для зсувів рухів
+let sessionStart: Date | null = null
+let sessionStartPerf = 0
+const saveStatus = ref<{ type: 'info' | 'success' | 'error'; text: string } | null>(null)
 
 // Логіка для перетягування вікна (Draggable)
 const windowPosition = reactive<{ x: number; y: number }>({ x: 300, y: 100 })
@@ -281,8 +290,55 @@ const startGame = () => {
     console.error("Game instance is not initialized yet.");
     return;
   }
+  // рахуємо лише рухи, зроблені під час гри
+  tracker.clearHistory();
+  sessionStart = new Date();
+  sessionStartPerf = performance.now();
+  saveStatus.value = null;
   game.startGame();
 };
+
+// MediaPipe може повернути координати трохи за межами кадру
+const clamp01 = (value: number) => Math.min(1, Math.max(0, value))
+
+const buildSessionRequest = (): GameSessionRequest | null => {
+  if (!sessionStart) return null
+  const motions: GameMotionRecord[] = tracker.getHistory().map((motion) => ({
+    startOffsetMs: Math.max(0, Math.round(motion.startPoint.timestamp - sessionStartPerf)),
+    durationMs: motion.durationMs,
+    startX: clamp01(motion.startPoint.x),
+    startY: clamp01(motion.startPoint.y),
+    endX: clamp01(motion.endPoint.x),
+    endY: clamp01(motion.endPoint.y),
+  }))
+  return {
+    gameName: GAME_NAME,
+    start: sessionStart.toISOString(),
+    durationMs: Math.round(performance.now() - sessionStartPerf),
+    motions,
+  }
+}
+
+const saveSessionStatistics = async () => {
+  const request = buildSessionRequest()
+  sessionStart = null
+  if (!request) return
+  if (!authStore.isAuthenticated) {
+    saveStatus.value = { type: 'info', text: 'Sign in to save your movement statistics.' }
+    return
+  }
+  saveStatus.value = { type: 'info', text: 'Saving statistics...' }
+  try {
+    const saved = await GameSessionService.save(request)
+    saveStatus.value = {
+      type: 'success',
+      text: `Statistics saved: ${saved.motionsCount} movements in ${saved.duration} s.`,
+    }
+  } catch (error) {
+    console.error('Failed to save game statistics', error)
+    saveStatus.value = { type: 'error', text: 'Could not save statistics to the server.' }
+  }
+}
 
 const stopGame = () => {
   isGameRunning.value = false;
@@ -293,6 +349,7 @@ const stopGame = () => {
 
   game.stopGame();
   printSessionStatistics(); // Print statistics when the game stops
+  saveSessionStatistics();
 };
 
 
@@ -355,6 +412,11 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+  // користувач пішов зі сторінки посеред гри — не втрачаємо статистику
+  if (isGameRunning.value) {
+    isGameRunning.value = false
+    saveSessionStatistics()
+  }
   stopTracking()
   window.removeEventListener('keydown', onKeyDown)
 })
@@ -400,6 +462,13 @@ onUnmounted(() => {
           <!-- <button v-if="isStreaming" @click="captureFrame">Capture Frame</button> -->
           <!--Fixme: <button v-if="!isStreaming" @click="startCamera">Start Camera</button> -->
           <!-- <button v-else @click="stopCamera">Stop Camera</button> -->
+        </div>
+
+        <div v-if="saveStatus" class="save-status" :class="`save-status--${saveStatus.type}`">
+          {{ saveStatus.text }}
+          <router-link v-if="saveStatus.type === 'info' && !authStore.isAuthenticated" to="/signin?redirect=/game/arkade">
+            Sign in
+          </router-link>
         </div>
 
         <!-- Snapshot Preview -->
@@ -464,6 +533,32 @@ button {
   font-weight: 500;
   border-radius: 6px;
   cursor: pointer;
+}
+
+.save-status {
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+}
+
+.save-status a {
+  margin-left: 0.5rem;
+  text-decoration: underline;
+}
+
+.save-status--info {
+  color: #1d4ed8;
+  background-color: #eff6ff;
+}
+
+.save-status--success {
+  color: #15803d;
+  background-color: #f0fdf4;
+}
+
+.save-status--error {
+  color: #dc2626;
+  background-color: #fef2f2;
 }
 
 .preview-container {
