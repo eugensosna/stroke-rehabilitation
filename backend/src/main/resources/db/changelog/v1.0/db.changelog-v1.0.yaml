@@ -1,0 +1,355 @@
+# Версія 1.0 — базова схема.
+# Раніше схему створював Hibernate (ddl-auto: update), тому кожен changeSet має
+# передумову з onFail: MARK_RAN: на існуючій базі вже наявні об'єкти лише
+# позначаються як застосовані, на порожній — створюються.
+databaseChangeLog:
+  - changeSet:
+      id: 1.0-01-primary-sequence
+      author: yevhen.sosna
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - sequenceExists:
+                sequenceName: primary_sequence
+      changes:
+        - createSequence:
+            sequenceName: primary_sequence
+            startValue: 10000
+            incrementBy: 1
+
+  - changeSet:
+      id: 1.0-02-users
+      author: yevhen.sosna
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - tableExists:
+                tableName: users
+      changes:
+        - createTable:
+            tableName: users
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: users_pkey
+                    nullable: false
+              - column:
+                  name: name
+                  type: ${type.text}
+              - column:
+                  name: email
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: password
+                  type: ${type.text}
+                  constraints:
+                    nullable: false
+              - column:
+                  name: full_name
+                  type: ${type.text}
+                  constraints:
+                    nullable: false
+              - column:
+                  name: reset_uuid
+                  type: varchar(255)
+              - column:
+                  name: reset_start
+                  type: timestamp with time zone
+              - column:
+                  name: role
+                  type: varchar(255)
+              - column:
+                  name: date_created
+                  type: timestamp with time zone
+                  constraints:
+                    nullable: false
+              - column:
+                  name: last_updated
+                  type: timestamp with time zone
+                  constraints:
+                    nullable: false
+              - column:
+                  name: version
+                  type: integer
+                  constraints:
+                    nullable: false
+        - sql:
+            sql: ALTER TABLE users ADD CONSTRAINT users_role_check CHECK (role IN ('ADMIN', 'USER'))
+      rollback:
+        - dropTable:
+            tableName: users
+
+  - changeSet:
+      id: 1.0-03-access-tokens
+      author: yevhen.sosna
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - tableExists:
+                tableName: access_tokens
+      changes:
+        - createTable:
+            tableName: access_tokens
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: access_tokens_pkey
+                    nullable: false
+              - column:
+                  name: token
+                  type: varchar(255)
+              - column:
+                  name: do_date_time
+                  type: timestamp with time zone
+              - column:
+                  name: end_time
+                  type: timestamp with time zone
+              - column:
+                  name: reset_token
+                  type: varchar(255)
+              - column:
+                  name: refresh_token
+                  type: varchar(255)
+              # без FK: у сутності @NotFound(action = IGNORE)
+              - column:
+                  name: user_id
+                  type: bigint
+              - column:
+                  name: date_created
+                  type: timestamp with time zone
+                  constraints:
+                    nullable: false
+              - column:
+                  name: last_updated
+                  type: timestamp with time zone
+                  constraints:
+                    nullable: false
+              # @SoftDelete
+              - column:
+                  name: deleted
+                  type: boolean
+                  constraints:
+                    nullable: false
+                  remarks: Soft-delete indicator
+
+  - changeSet:
+      id: 1.0-04-game-statses
+      author: yevhen.sosna
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - tableExists:
+                tableName: game_statses
+      changes:
+        - createTable:
+            tableName: game_statses
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: game_statses_pkey
+                    nullable: false
+              - column:
+                  name: start
+                  type: timestamp with time zone
+              - column:
+                  name: duration
+                  type: numeric(12, 3)
+              - column:
+                  name: date_created
+                  type: timestamp with time zone
+                  constraints:
+                    nullable: false
+              - column:
+                  name: last_updated
+                  type: timestamp with time zone
+                  constraints:
+                    nullable: false
+
+  - changeSet:
+      id: 1.0-05-games
+      author: yevhen.sosna
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - tableExists:
+                tableName: games
+      changes:
+        - createTable:
+            tableName: games
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: games_pkey
+                    nullable: false
+              - column:
+                  name: name
+                  type: varchar(255)
+              # без FK: у сутності @NotFound(action = IGNORE)
+              - column:
+                  name: statistic_id
+                  type: bigint
+                  constraints:
+                    unique: true
+                    uniqueConstraintName: uk_games_statistic_id
+              - column:
+                  name: user_id
+                  type: bigint
+                  constraints:
+                    foreignKeyName: fk_games_user
+                    references: users(id)
+              - column:
+                  name: date_created
+                  type: timestamp with time zone
+                  constraints:
+                    nullable: false
+              - column:
+                  name: last_updated
+                  type: timestamp with time zone
+                  constraints:
+                    nullable: false
+
+  # Статистика рухів по користувачу (агрегати сесії)
+  - changeSet:
+      id: 1.0-06-game-statses-motion-aggregates
+      author: yevhen.sosna
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - columnExists:
+                tableName: game_statses
+                columnName: user_id
+      changes:
+        - addColumn:
+            tableName: game_statses
+            columns:
+              - column:
+                  name: user_id
+                  type: bigint
+                  constraints:
+                    foreignKeyName: fk_game_statses_user
+                    references: users(id)
+              - column:
+                  name: game_name
+                  type: varchar(255)
+              - column:
+                  name: motions_count
+                  type: integer
+              - column:
+                  name: total_distance
+                  type: double precision
+              - column:
+                  name: average_distance
+                  type: double precision
+              - column:
+                  name: max_distance
+                  type: double precision
+              - column:
+                  name: average_speed
+                  type: double precision
+              - column:
+                  name: max_speed
+                  type: double precision
+        - createIndex:
+            tableName: game_statses
+            indexName: idx_game_statses_user_start
+            columns:
+              - column:
+                  name: user_id
+              - column:
+                  name: start
+
+  # Окремі рухи зап'ястка в межах сесії
+  - changeSet:
+      id: 1.0-07-game-motions
+      author: yevhen.sosna
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - tableExists:
+                tableName: game_motions
+      changes:
+        - createTable:
+            tableName: game_motions
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: game_motions_pkey
+                    nullable: false
+              - column:
+                  name: game_stats_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_game_motions_game_stats
+                    references: game_statses(id)
+                    deleteCascade: true
+              - column:
+                  name: start_offset_ms
+                  type: bigint
+                  constraints:
+                    nullable: false
+              - column:
+                  name: duration_ms
+                  type: double precision
+                  constraints:
+                    nullable: false
+              - column:
+                  name: startx
+                  type: double precision
+                  constraints:
+                    nullable: false
+              - column:
+                  name: starty
+                  type: double precision
+                  constraints:
+                    nullable: false
+              - column:
+                  name: endx
+                  type: double precision
+                  constraints:
+                    nullable: false
+              - column:
+                  name: endy
+                  type: double precision
+                  constraints:
+                    nullable: false
+              - column:
+                  name: distance
+                  type: double precision
+                  constraints:
+                    nullable: false
+              - column:
+                  name: speed
+                  type: double precision
+                  constraints:
+                    nullable: false
+        - createIndex:
+            tableName: game_motions
+            indexName: idx_game_motions_game_stats
+            columns:
+              - column:
+                  name: game_stats_id
+
+  - changeSet:
+      id: 1.0-tag
+      author: yevhen.sosna
+      changes:
+        - tagDatabase:
+            tag: v1.0

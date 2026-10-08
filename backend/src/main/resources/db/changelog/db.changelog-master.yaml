@@ -1,0 +1,14 @@
+# Головний changelog. Кожна нова версія схеми — окремий файл у db/changelog/vX.Y/,
+# підключений тут у порядку застосування. Вже застосовані changeSet-и не змінювати.
+databaseChangeLog:
+  # Liquibase перетворює `text` на CLOB у H2 (тести), а Hibernate очікує VARCHAR
+  - property:
+      name: type.text
+      value: text
+      dbms: postgresql
+  - property:
+      name: type.text
+      value: varchar(1000000)
+      dbms: h2
+  - include:
+      file: db/changelog/v1.0/db.changelog-v1.0.yaml

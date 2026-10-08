@@ -76,7 +76,8 @@ src/components/          ui/ primitives, layout/, icons/, forms/, charts/
 | Var | Purpose |
 |---|---|
 | `SPRING_DATASOURCE_URL/USERNAME/PASSWORD` | PostgreSQL connection |
-| `SPRING_JPA_HIBERNATE_DDL_AUTO` | `update` in dev |
+| `SPRING_JPA_HIBERNATE_DDL_AUTO` | `validate` — schema is owned by Liquibase (`backend/src/main/resources/db/changelog/`) |
+| `SPRING_LIQUIBASE_ENABLED` | `true` (default); runs migrations on startup |
 | `SPRING_PROFILES_ACTIVE` | `local` (dev), `production` |
 | `SPRING_ALLOWED_ORIGINS` | CORS allow-list |
 | `jwt.secret`, `jwt.expiration`, `jwt.access-token-expiration-second` | token settings in `application.yml` |

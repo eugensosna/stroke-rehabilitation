@@ -18,7 +18,7 @@ spring:
     
     hibernate:
       format_sql: true 
-      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:update}
+      ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO:validate}
     open-in-view: false
     properties:
       
@@ -28,6 +28,10 @@ spring:
             non_contextual_creation: true
         id:
           new_generator_mappings: true
+  # схемою керує Liquibase, Hibernate лише перевіряє відповідність (validate)
+  liquibase:
+    enabled: ${SPRING_LIQUIBASE_ENABLED:true}
+    change-log: classpath:db/changelog/db.changelog-master.yaml
   docker:
     compose:
       lifecycle-management: start-only

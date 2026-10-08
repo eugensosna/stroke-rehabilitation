@@ -60,7 +60,10 @@ npm run build          # type-check + vite build
 ## Database
 
 - PostgreSQL 18.4 via docker compose (`db` service, volume `db_data`).
-- Schema managed by `ddl-auto: update` — entities auto-migrate; never hand-edit SQL.
+- Schema managed by **Liquibase** (`backend/src/main/resources/db/changelog/`); Hibernate runs with
+  `ddl-auto: validate`. When you change an entity, add a new changeSet (new file under
+  `db/changelog/vX.Y/`, included from `db.changelog-master.yaml`). Never edit an applied changeSet.
+  Tests run the same changelog on H2 and fail on entity/schema mismatch.
 
 ## Pre-completion checklist
 

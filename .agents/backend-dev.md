@@ -46,5 +46,4 @@ cross-stack context.
 ## Reporting
 
 When done, summarize: files changed, endpoints/entities added, test results, and
-anything the user must configure (env vars, DB migration effects from
-`ddl-auto: update`).
+anything the user must configure (env vars, new Liquibase changeSets).
