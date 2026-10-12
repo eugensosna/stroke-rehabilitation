@@ -173,6 +173,10 @@ const menuGroups = [
           {
             name: "Arkade 1",
             path: "/game/arkade",
+          },
+          {
+            name: "Arkade 2",
+            path: "/game/arkade2",
           }
         ]
 

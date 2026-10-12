@@ -146,6 +146,11 @@ const router = createRouter({
       name: 'Arkade',
       component: () => import('../views/games/GameArcade1.vue'),
     },
+    {
+      path: '/game/arkade2',
+      name: 'Arkade2',
+      component: () => import('../views/games/ArkanoidGame.vue'),
+    }
   ],
 })
 
