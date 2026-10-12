@@ -181,17 +181,9 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import ModalView from './ModalView.vue';
-import { userInfo } from '@/types/user.ts';
+import type { userInfo } from '@/types/user.ts';
 
 const userInfo = ref<userInfo | undefined>(undefined);
-
-
-
-defineSlots<{
-  body(props?: object): unknown
-  userId: string | undefined
-
-}>()
 const isProfileInfoModal = ref(false)
 
 const saveProfile = () => {
