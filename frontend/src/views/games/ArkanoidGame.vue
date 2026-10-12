@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import AdminLayout from '@/components/layout/AdminLayout.vue'
+import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
 
 // ---------------------------------------------------------------------------
 // Типи
@@ -92,6 +94,8 @@ const lives = ref(3)
 const bricksLeft = ref(0)
 const wave = ref(0)
 const fps = ref(60)
+
+const currentPageTitle = ref('Arkanoid')
 
 const diffConfig = computed(() => DIFFICULTIES[difficulty.value])
 
@@ -925,7 +929,9 @@ watch(difficulty, (d) => {
 </script>
 
 <template>
-  <div class="game-wrapper">
+  <AdminLayout>
+    <PageBreadcrumb :pageTitle="currentPageTitle" />
+    <div class="game-wrapper">
     <!-- Прихований video-елемент: джерело кадрів для canvas-фону -->
     <video ref="videoEl" class="cam-video-src" muted playsinline autoplay />
 
@@ -1122,17 +1128,18 @@ watch(difficulty, (d) => {
         📷
       </button>
     </div>
-  </div>
+    </div>
+  </AdminLayout>
 </template>
 
 <style scoped>
 .game-wrapper {
-  min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 14px;
+  border-radius: 14px;
   padding: 18px;
   background: radial-gradient(circle at 50% 0%, #13173a 0%, #05060f 70%);
   color: #e2e8f0;
