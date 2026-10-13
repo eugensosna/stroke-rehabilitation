@@ -1,501 +1,97 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, reactive } from 'vue'
-import { Hands, type Results as HandResults } from '@mediapipe/hands'
-import { Pose } from '@mediapipe/pose'
-import { Camera } from '@mediapipe/camera_utils'
-import AdminLayout from '@/components/layout/AdminLayout.vue';
-import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue';
-import { WristTracker } from '@/composables/WristTracker';
-import { GameArcade } from '@/composables/useGame';
-import type { GameMotionRecord, GameSessionRequest, MotionResult, Point2D } from '@/types/game';
-import { AuthStore } from '@/store/auth_store';
-import { GameSessionService } from '@/services/game_session_service';
-
-
-const currentPageTitle = ref("Video test");
-const videoRef = ref<HTMLVideoElement | null>(null)
-const canvasRef = ref<HTMLCanvasElement | null>(null)
-const canvasVideoRef = ref<HTMLCanvasElement | null>(null)
-const CANVAS_WIDTH = 440
-const CANVAS_HEIGHT = 500
-let game: GameArcade | null = null;
-let ctx: CanvasRenderingContext2D | null = null;
-const errorMessage = ref<string | null>(null)
-const isRunning = ref(false)
-const capturedImage = ref<string | null>(null)
-
-let cameraInstance: Camera | null = null
-let handsInstance: Hands | null = null
-const isStreaming = ref<boolean>(false);
-const isGameRunning = ref<boolean>(false);
+import { onMounted, onUnmounted, ref } from 'vue'
+import AdminLayout from '@/components/layout/AdminLayout.vue'
+import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
+import CameraOverlayWindow from '@/components/games/CameraOverlayWindow.vue'
+import GameControls from '@/components/games/GameControls.vue'
+import SaveStatusBanner from '@/components/games/SaveStatusBanner.vue'
+import { useArcadeGame } from '@/composables/useArcadeGame'
+import { useGameSession } from '@/composables/useGameSession'
+import { useHandTracking } from '@/composables/useHandTracking'
+import { useWristMotion } from '@/composables/useWristMotion'
+import { AuthStore } from '@/store/auth_store'
 
 const GAME_NAME = 'arkade'
+const CANVAS_WIDTH = 440
+const CANVAS_HEIGHT = 500
+
+const currentPageTitle = ref('Video test')
+const videoRef = ref<HTMLVideoElement | null>(null)
+const canvasRef = ref<HTMLCanvasElement | null>(null)
+const overlayRef = ref<InstanceType<typeof CameraOverlayWindow> | null>(null)
+
 const authStore = AuthStore()
-// Початок поточної ігрової сесії: wall-clock для сервера і performance.now() для зсувів рухів
-let sessionStart: Date | null = null
-let sessionStartPerf = 0
-const saveStatus = ref<{ type: 'info' | 'success' | 'error'; text: string } | null>(null)
+const game = useArcadeGame(canvasRef)
+const { tracker, printStatistics } = useWristMotion(game.movePaddle)
+const session = useGameSession(GAME_NAME, () => tracker.getHistory())
+const { saveStatus } = session
 
-// Логіка для перетягування вікна (Draggable)
-const windowPosition = reactive<{ x: number; y: number }>({ x: 300, y: 100 })
-let isDragging = false
-const dragOffset = reactive<{ x: number; y: number }>({ x: 0, y: 0 })
+const { isStreaming, errorMessage, ...camera } = useHandTracking(videoRef, {
+  onWrist: (point) => {
+    tracker.update(point.x, point.y)
+    game.movePaddle(point)
+  },
+  onFrame: (video, wrist) => overlayRef.value?.drawFrame(video, wrist),
+  trackPose: true,
+})
 
-const startDrag = (event: MouseEvent): void => {
-  isDragging = true
-  dragOffset.x = event.clientX - windowPosition.x
-  dragOffset.y = event.clientY - windowPosition.y
-
-  window.addEventListener('mousemove', onDrag)
-  window.addEventListener('mouseup', stopDrag)
-}
-
-const onDrag = (event: MouseEvent): void => {
-  if (!isDragging) return
-  windowPosition.x = event.clientX - dragOffset.x
-  windowPosition.y = event.clientY - dragOffset.y
-}
-
-const stopDrag = (): void => {
-  isDragging = false
-  window.removeEventListener('mousemove', onDrag)
-  window.removeEventListener('mouseup', stopDrag)
-}
-
-
-
-const handleMotionComplete = (result: MotionResult) => {
-  console.log("Рух завершено:", {
-    швидкість_тривалість_мс: result.durationMs,
-    довжина_руху: result.distance.toFixed(4),
-    звідки: result.startPoint,
-    куди: result.endPoint
-  });
-
-  if (game) {
-    console.log("Рух завершено, рухаємо палицю:", result.endPoint);
-    game.movePaddle(result.endPoint);
-  }
-
-};
-
-const handleStationary = (point: Point2D) => {
-  console.log("Рука не рухається або тремтить (раз на секунду):", point);
-  if (game) {
-    game.movePaddle(point);
-  } else {
-    console.log("Game instance not initialized yet.");
-  }
-};
-
-// Keyboard controls: move paddle left/right with arrow keys
-const onKeyDown = (e: KeyboardEvent) => {
-  if (!game || !canvasRef.value) return
-
-  const canvasWidth = canvasRef.value.width
-  const paddleCenter = game.paddle.x + game.paddle.width / 2
-  let percent = paddleCenter / canvasWidth
-  const STEP = 0.05 // move by 5% of canvas width per key press
-
-  if (e.key === 'ArrowLeft') {
-    percent = Math.max(0, percent - STEP)
-  } else if (e.key === 'ArrowRight') {
-    percent = Math.min(1, percent + STEP)
-  } else {
-    return
-  }
-
-  // Provide a Point2D-like object to movePaddle
-  game.movePaddle({ x: percent, y: 0, timestamp: Date.now() })
-}
-
-// 2. Ініціалізуємо трекер
-const tracker: WristTracker = new WristTracker(
-  handleMotionComplete,
-  handleStationary,
-  0.03, // Поріг для початку руху
-  0.008 // Поріг для фільтрації тремтіння
-);
-
-
-
-
-function printSessionStatistics() {
-  console.log("--- СТАТИСТИКА РУХІВ ЗАП'ЯСТКА ---");
-  console.log("Всього рухів зроблено:", tracker.getHistory().length);
-  console.log("Найдовший рух:", tracker.getLongestMotion());
-  console.log("Найшвидший рух:", tracker.getFastestMotion());
-  console.log("Середня довжина руху:", tracker.getAverageDistance().toFixed(4));
-  console.log("Середня швидкість руху:", tracker.getAverageSpeed().toFixed(6));
-}
-
-
-
-
-const startTracking = async () => {
-  errorMessage.value = null
-
-  if (!videoRef.value || !canvasRef.value) return
-
-  const videoElement = videoRef.value
-  const canvasElement = canvasRef.value
-  const canvasCtx = canvasElement.getContext('2d')
-
-  if (!canvasCtx) return
-  if (!isStreaming.value) {
-    isStreaming.value = true;
-  }
-  game = new GameArcade(canvasElement);
-  ctx = canvasCtx;
-
-  //Fixme: Initialize MediaPipe Pose for additional pose tracking if needed, research for future enhancements.
-
-  const poseInstance = new Pose({
-    locateFile: (file) => {
-      return `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`
-    }
-  })
-  poseInstance.setOptions({
-    modelComplexity: 1,
-    smoothLandmarks: true,
-    enableSegmentation: false,
-    smoothSegmentation: false,
-    minDetectionConfidence: 0.5,
-    minTrackingConfidence: 0.5
-  })
-  poseInstance.onResults((results) => {
-    // You can process pose results here if needed
-    // For now, we are focusing on hand tracking
-    if (results.poseLandmarks) {
-      // Example: Log the position of the nose
-      const nose = results.poseLandmarks[0]
-      console.log(`Nose position: x=${nose.x}, y=${nose.y}, z=${nose.z}`)
-    }
-  })
-
-
-
-  // 1. Initialize MediaPipe Hands
-  handsInstance = new Hands({
-    locateFile: (file) => {
-      return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
-    }
-  })
-
-  handsInstance.setOptions({
-    maxNumHands: 2,
-    modelComplexity: 1,
-    minDetectionConfidence: 0.5,
-    minTrackingConfidence: 0.5,
-    selfieMode: true
-  })
-
-
-
-
-  // 2. Handle detection results
-  handsInstance.onResults((results: HandResults) => {
-    let wristPosition: Point2D | null = null;
-
-    // Keep the canvas at a fixed display size so it does not change after startup.
-    if (canvasElement.width !== CANVAS_WIDTH || canvasElement.height !== CANVAS_HEIGHT) {
-      canvasElement.width = CANVAS_WIDTH
-      canvasElement.height = CANVAS_HEIGHT
-    }
-
-    /*
-        // Clear and draw the live video frame onto the canvas
-        canvasCtx.save()
-        canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height)
-        canvasCtx.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height)
-    */
-
-
-    // If hands are detected, loop through them and update tracker state.
-    if (results.multiHandLandmarks) {
-      for (const landmarks of results.multiHandLandmarks) {
-        // Landmark 9 is the middle finger MCP (base knuckle),
-        // Landmark 0 is the wrist. Averaging them gives a stable center point of the palm.
-        const wrist = landmarks[0]
-        if (wrist) {
-          wristPosition = { x: wrist.x, y: wrist.y, timestamp: Date.now() };
-          tracker.update(wrist.x, wrist.y);
-          if (game) {
-            game.movePaddle(wristPosition);
-          } else {
-            console.log("Game instance not initialized yet.");
-          }
-
-
-        }
-      }
-    }
-
-    // Draw the live video frame to the floating overlay canvas.
-    const overlayCanvas = canvasVideoRef.value
-    if (overlayCanvas) {
-      const overlayCtx = overlayCanvas.getContext('2d')
-      if (overlayCtx) {
-        const canvasWidth = overlayCanvas.width;
-        const canvasHeight = overlayCanvas.height;
-        overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight)
-
-        // Mirror the overlay video horizontally
-        overlayCtx.save()
-        overlayCtx.translate(canvasWidth, 0)
-        overlayCtx.scale(-1, 1)
-        overlayCtx.drawImage(videoElement, 0, 0, canvasWidth, canvasHeight)
-        overlayCtx.restore()
-
-        if (wristPosition) {
-          // Mirror the wrist marker position too
-          // const mirroredX = canvasWidth - wristPosition.x * canvasWidth
-          overlayCtx.beginPath()
-          overlayCtx.arc(wristPosition.x * canvasWidth, wristPosition.y * canvasHeight, 10, 0, 2 * Math.PI)
-          overlayCtx.fillStyle = 'rgba(255, 0, 0, 0.7)'
-          overlayCtx.fill()
-        }
-      }
-    }
-
-    // canvasCtx.restore()
-  });
-
-
-
-  // 3. Setup MediaPipe Camera utility to feed video frames into the Hands model
-  try {
-    cameraInstance = new Camera(videoElement, {
-      onFrame: async () => {
-        if (videoRef.value && handsInstance) {
-          await handsInstance.send({ image: videoRef.value })
-          poseInstance.send({ image: videoRef.value })
-        }
-      },
-      width: 1280,
-      height: 720
-    })
-
-    await cameraInstance.start()
-    isRunning.value = true
-    isStreaming.value = true;
-  } catch (err) {
-    errorMessage.value = 'Could not initialize webcam. Check permissions.'
-    console.error(err)
-  }
-}
 const startGame = () => {
-  isGameRunning.value = true;
-  if (!game) {
-    console.error("Game instance is not initialized yet.");
-    return;
-  }
+  if (!game.start()) return
   // рахуємо лише рухи, зроблені під час гри
-  tracker.clearHistory();
-  sessionStart = new Date();
-  sessionStartPerf = performance.now();
-  saveStatus.value = null;
-  game.startGame();
-};
-
-// MediaPipe може повернути координати трохи за межами кадру
-const clamp01 = (value: number) => Math.min(1, Math.max(0, value))
-
-const buildSessionRequest = (): GameSessionRequest | null => {
-  if (!sessionStart) return null
-  const motions: GameMotionRecord[] = tracker.getHistory().map((motion) => ({
-    startOffsetMs: Math.max(0, Math.round(motion.startPoint.timestamp - sessionStartPerf)),
-    durationMs: motion.durationMs,
-    startX: clamp01(motion.startPoint.x),
-    startY: clamp01(motion.startPoint.y),
-    endX: clamp01(motion.endPoint.x),
-    endY: clamp01(motion.endPoint.y),
-  }))
-  return {
-    gameName: GAME_NAME,
-    start: sessionStart.toISOString(),
-    durationMs: Math.round(performance.now() - sessionStartPerf),
-    motions,
-  }
-}
-
-const saveSessionStatistics = async () => {
-  const request = buildSessionRequest()
-  sessionStart = null
-  if (!request) return
-  if (!authStore.isAuthenticated) {
-    saveStatus.value = { type: 'info', text: 'Sign in to save your movement statistics.' }
-    return
-  }
-  saveStatus.value = { type: 'info', text: 'Saving statistics...' }
-  try {
-    const saved = await GameSessionService.save(request)
-    saveStatus.value = {
-      type: 'success',
-      text: `Statistics saved: ${saved.motionsCount} movements in ${saved.duration} s.`,
-    }
-  } catch (error) {
-    console.error('Failed to save game statistics', error)
-    saveStatus.value = { type: 'error', text: 'Could not save statistics to the server.' }
-  }
+  tracker.clearHistory()
+  session.begin()
 }
 
 const stopGame = () => {
-  isGameRunning.value = false;
-  if (!game) {
-    console.error("Game instance is not initialized yet.");
-    return;
-  }
-
-  game.stopGame();
-  printSessionStatistics(); // Print statistics when the game stops
-  saveSessionStatistics();
-};
-
-
-/*
-const captureFrame = () => {
-  if (!videoRef.value || !canvasRef.value) return
-
-  const videoElement = videoRef.value
-  const canvasElement = canvasRef.value
-  const canvasCtx = canvasElement.getContext('2d')
-
-  if (!canvasCtx) return
-
-  if (canvasElement.width !== CANVAS_WIDTH || canvasElement.height !== CANVAS_HEIGHT) {
-    canvasElement.width = CANVAS_WIDTH
-    canvasElement.height = CANVAS_HEIGHT
-  }
-
-  canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height)
-  canvasCtx.drawImage(videoElement, 0, 0, canvasElement.width, canvasElement.height)
-
-  capturedImage.value = canvasElement.toDataURL('image/png')
+  if (!game.stop()) return
+  printStatistics()
+  session.save()
 }
-*/
-const stopTracking = () => {
-  if (cameraInstance) {
-    cameraInstance.stop()
-    cameraInstance = null
-    isStreaming.value = false;
-  }
-  if (handsInstance) {
-    handsInstance.close()
-    handsInstance = null
-  }
-  isRunning.value = false
-}
-/*
-const stopCamera = () => {
-  stopTracking();
-  // Коли потрібно вивести статистику (наприклад, кнопкою або в кінці сеансу):
-  printSessionStatistics();
-}
-*/
 
 onMounted(() => {
-  startTracking();
-  window.addEventListener('keydown', onKeyDown)
-  const loop = () => {
-    if (game && ctx) {
-      game.updatePhysics();
-      game.draw(ctx);
-      requestAnimationFrame(loop);
-      // console.log("Game loop running...:", counter);
-    }
-    else {
-      console.log("Game or context not initialized yet.");
-    }
-  };
-  loop();
+  game.init()
+  camera.start()
 })
 
 onUnmounted(() => {
   // користувач пішов зі сторінки посеред гри — не втрачаємо статистику
-  if (isGameRunning.value) {
-    isGameRunning.value = false
-    saveSessionStatistics()
+  if (game.isGameRunning.value) {
+    game.isGameRunning.value = false
+    session.save()
   }
-  stopTracking()
-  window.removeEventListener('keydown', onKeyDown)
+  camera.stop()
 })
 </script>
+
 <template>
   <AdminLayout>
     <PageBreadcrumb :pageTitle="currentPageTitle" />
     <div class="space-y-5 sm:space-y-6">
-
-      <!-- Плавуче вікно -->
-      <div class="floating-window" :style="{ top: windowPosition.y + 'px', left: windowPosition.x + 'px' }">
-        <!-- Шапка вікна, за яку можна перетягувати -->
-        <div class="window-header" @mousedown="startDrag">
-          <div v-if="isStreaming">
-            <canvas ref="canvasVideoRef" class="webcam-canvas"></canvas>
-
-          </div>
-          <span class="window-title">Camera Stream</span>
-          <span class="drag-handle">⠿</span>
-        </div>
-      </div>
-
-
-
-
-
-
+      <CameraOverlayWindow ref="overlayRef" :visible="isStreaming" />
 
       <div class="camera-container">
         <div v-if="errorMessage" class="error-banner">
           {{ errorMessage }}
         </div>
 
-        <!-- Hidden or visible video element acting as the stream source -->
+        <!-- Hidden video element acting as the stream source -->
         <video ref="videoRef" autoplay playsinline muted class="hidden-video"></video>
 
-        <!-- Canvas displaying the active video stream feed -->
-        <canvas ref="canvasRef" class="webcam-canvas" width="440" height="500"></canvas>
+        <canvas ref="canvasRef" class="webcam-canvas" :width="CANVAS_WIDTH" :height="CANVAS_HEIGHT"></canvas>
 
-        <div class="controls">
-          <button v-if="!isGameRunning" @click="startGame">Start Game</button>
-          <button v-if="isGameRunning" @click="stopGame">Stop Game</button>
-          <!-- <button v-if="isStreaming" @click="captureFrame">Capture Frame</button> -->
-          <!--Fixme: <button v-if="!isStreaming" @click="startCamera">Start Camera</button> -->
-          <!-- <button v-else @click="stopCamera">Stop Camera</button> -->
-        </div>
+        <GameControls :is-game-running="game.isGameRunning.value" @start="startGame" @stop="stopGame" />
 
-        <div v-if="saveStatus" class="save-status" :class="`save-status--${saveStatus.type}`">
-          {{ saveStatus.text }}
-          <router-link v-if="saveStatus.type === 'info' && !authStore.isAuthenticated" to="/signin?redirect=/game/arkade">
-            Sign in
-          </router-link>
-        </div>
-
-        <!-- Snapshot Preview -->
-        <div v-if="capturedImage" class="preview-container">
-          <h3>Captured Snapshot:</h3>
-          <img :src="capturedImage" alt="Captured snapshot" class="snapshot-img" />
-        </div>
+        <SaveStatusBanner
+          :status="saveStatus"
+          :is-authenticated="authStore.isAuthenticated"
+          redirect-path="/game/arkade"
+        />
       </div>
     </div>
   </AdminLayout>
 </template>
 
 <style scoped>
-/* Стилі для плавучого вікна */
-.floating-window {
-  position: fixed;
-  z-index: 1000;
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
-  min-width: 100px;
-  min-height: 100px;
-  transition: transform 0.2s ease-in-out;
-}
-
 .camera-container {
   display: flex;
   flex-direction: column;
@@ -508,11 +104,7 @@ onUnmounted(() => {
 }
 
 .webcam-canvas {
-  /* width: 100%; */
-
-  /* border-radius: 8px; */
   background-color: #000;
-
 }
 
 .error-banner {
@@ -521,56 +113,5 @@ onUnmounted(() => {
   padding: 0.75rem 1rem;
   border-radius: 6px;
   border: 1px solid #fecaca;
-}
-
-.controls {
-  display: flex;
-  gap: 0.5rem;
-}
-
-button {
-  padding: 0.5rem 1.25rem;
-  font-weight: 500;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.save-status {
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  font-size: 0.875rem;
-}
-
-.save-status a {
-  margin-left: 0.5rem;
-  text-decoration: underline;
-}
-
-.save-status--info {
-  color: #1d4ed8;
-  background-color: #eff6ff;
-}
-
-.save-status--success {
-  color: #15803d;
-  background-color: #f0fdf4;
-}
-
-.save-status--error {
-  color: #dc2626;
-  background-color: #fef2f2;
-}
-
-.preview-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.snapshot-img {
-  max-width: 320px;
-  border-radius: 6px;
-  border: 1px solid #ccc;
 }
 </style>

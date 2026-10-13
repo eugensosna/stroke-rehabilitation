@@ -81,3 +81,9 @@ export interface GameSessionResponse {
   averageSpeed: number;
   maxSpeed: number;
 }
+
+// Статус збереження статистики ігрової сесії, що показується користувачу
+export interface SaveStatus {
+  type: 'info' | 'success' | 'error';
+  text: string;
+}
