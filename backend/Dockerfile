@@ -1,4 +1,4 @@
-FROM eclipse-temurin:25-jdk AS builder
+FROM docker.io/library/eclipse-temurin:25-jdk AS builder
 WORKDIR /app
 
 # Copy Gradle wrapper and configuration files first to leverage Docker layer caching
@@ -20,7 +20,7 @@ RUN ./gradlew bootJar --no-daemon -x test
 # ==========================================
 # Stage 2: Runtime Image
 # ==========================================
-FROM eclipse-temurin:25-jre-alpine
+FROM docker.io/library/eclipse-temurin:25-jre-alpine
 
 # Run as a non-root user for security
 RUN addgroup -S spring && adduser -S spring -G spring

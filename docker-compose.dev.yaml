@@ -1,6 +1,6 @@
 services:
   db:
-    image: postgres:18
+    image: docker.io/library/postgres:18
     environment:
     - POSTGRES_DB=${POSTGRES_DB:-stroke}
     - POSTGRES_USER=${POSTGRES_USER:-postgres}

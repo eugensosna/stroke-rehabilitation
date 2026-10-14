@@ -15,7 +15,7 @@ java {
 }
 
 springBoot {
-  mainClass = 'ua.ua.edu.zsea.sosna.stroke.StrokeApplication'
+  mainClass = 'ua.edu.zsea.sosna.stroke.StrokeApplication'
 }
 
 bootRun {

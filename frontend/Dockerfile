@@ -1,4 +1,4 @@
-FROM node:20-alpine AS builder
+FROM docker.io/library/node:20-alpine AS builder
 
 WORKDIR /app
 
@@ -14,7 +14,7 @@ ENV VITE_API_BASE_URL=${VITE_API_BASE_URL}
 
 RUN npx vite build
 
-FROM node:20-alpine AS runner
+FROM docker.io/library/node:20-alpine AS runner
 
 WORKDIR /app
 
