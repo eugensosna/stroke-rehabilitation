@@ -68,9 +68,10 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue'
 import flatPickr from 'vue-flatpickr-component'
+import type { Options } from 'flatpickr/dist/types/options'
 
 const options = [
   { value: 'optionOne', label: 'Monthly' },
@@ -81,7 +82,7 @@ const options = [
 const selected = ref('optionOne')
 const date = ref('')
 
-const flatpickrConfig = {
+const flatpickrConfig: Partial<Options> = {
   mode: 'range',
   dateFormat: 'M j',
   defaultDate: [new Date(Date.now() - 7 * 24 * 60 * 60 * 1000), new Date()],

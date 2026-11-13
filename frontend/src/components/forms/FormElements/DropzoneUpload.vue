@@ -46,7 +46,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount } from 'vue'
 import Dropzone from 'dropzone'
 import 'dropzone/dist/dropzone.css'
@@ -59,8 +59,8 @@ const props = defineProps({
 })
 
 const dropzoneForm = ref(null)
-const dropzoneId = `dropzone-${Math.random().toString(36).substr(2, 9)}`
-let dropzoneInstance = null
+const dropzoneId = `dropzone-${Math.random().toString(36).slice(2, 11)}`
+let dropzoneInstance: Dropzone | null = null
 
 onMounted(() => {
   Dropzone.autoDiscover = false

@@ -9,7 +9,7 @@
       </div>
 
       <!-- Modal -->
-      <ModalView v-if="isOpen" @close="closeModal = false">
+      <ModalView v-if="isOpen" @close="closeModal">
         <template #body>
           <div
             class="no-scrollbar relative w-full max-w-[700px] overflow-y-auto rounded-3xl bg-white p-4 dark:bg-gray-900 lg:p-11"
@@ -218,26 +218,34 @@
   </AdminLayout>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import AdminLayout from '@/components/layout/AdminLayout.vue'
 import PageBreadcrumb from '@/components/common/PageBreadcrumb.vue'
 
 const currentPageTitle = ref('Calendar')
-import { ref, reactive, onMounted } from 'vue'
+import { computed, ref, reactive, onMounted } from 'vue'
 import FullCalendar from '@fullcalendar/vue3'
 import dayGridPlugin from '@fullcalendar/daygrid'
 import timeGridPlugin from '@fullcalendar/timegrid'
 import interactionPlugin from '@fullcalendar/interaction'
+import type {
+  CalendarOptions,
+  DateSelectArg,
+  EventApi,
+  EventClickArg,
+  EventContentArg,
+  EventInput,
+} from '@fullcalendar/core'
 import ModalView from '@/components/profile/ModalView.vue'
 
 const calendarRef = ref(null)
 const isOpen = ref(false)
-const selectedEvent = ref(null)
+const selectedEvent = ref<EventApi | null>(null)
 const eventTitle = ref('')
 const eventStartDate = ref('')
 const eventEndDate = ref('')
 const eventLevel = ref('')
-const events = ref([])
+const events = ref<EventInput[]>([])
 
 const calendarsEvents = reactive({
   Danger: 'danger',
@@ -287,14 +295,14 @@ const resetModalFields = () => {
   selectedEvent.value = null
 }
 
-const handleDateSelect = (selectInfo) => {
+const handleDateSelect = (selectInfo: DateSelectArg) => {
   resetModalFields()
   eventStartDate.value = selectInfo.startStr
   eventEndDate.value = selectInfo.endStr || selectInfo.startStr
   openModal()
 }
 
-const handleEventClick = (clickInfo) => {
+const handleEventClick = (clickInfo: EventClickArg) => {
   const event = clickInfo.event
   selectedEvent.value = event
   eventTitle.value = event.title
@@ -305,10 +313,11 @@ const handleEventClick = (clickInfo) => {
 }
 
 const handleAddOrUpdateEvent = () => {
-  if (selectedEvent.value) {
+  const selected = selectedEvent.value
+  if (selected) {
     // Update existing event
     events.value = events.value.map((event) =>
-      event.id === selectedEvent.value.id
+      event.id === selected.id
         ? {
             ...event,
             title: eventTitle.value,
@@ -333,13 +342,14 @@ const handleAddOrUpdateEvent = () => {
   closeModal()
 }
 const handleDeleteEvent = () => {
-  if (selectedEvent.value) {
-    events.value = events.value.filter((event) => event.id !== selectedEvent.value.id)
+  const selected = selectedEvent.value
+  if (selected) {
+    events.value = events.value.filter((event) => event.id !== selected.id)
     closeModal()
   }
 }
 
-const renderEventContent = (eventInfo) => {
+const renderEventContent = (eventInfo: EventContentArg) => {
   const colorClass = `fc-bg-${eventInfo.event.extendedProps.calendar.toLowerCase()}`
   return {
     html: `
@@ -352,7 +362,8 @@ const renderEventContent = (eventInfo) => {
   }
 }
 
-const calendarOptions = reactive({
+// computed: нова розмітка подій потрапляє в календар
+const calendarOptions = computed<CalendarOptions>(() => ({
   plugins: [dayGridPlugin, timeGridPlugin, interactionPlugin],
   initialView: 'dayGridMonth',
   headerToolbar: {
@@ -360,7 +371,7 @@ const calendarOptions = reactive({
     center: 'title',
     right: 'dayGridMonth,timeGridWeek,timeGridDay',
   },
-  events: events,
+  events: events.value,
   selectable: true,
   select: handleDateSelect,
   eventClick: handleEventClick,
@@ -371,5 +382,5 @@ const calendarOptions = reactive({
       click: openModal,
     },
   },
-})
+}))
 </script>

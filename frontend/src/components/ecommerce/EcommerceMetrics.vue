@@ -64,7 +64,7 @@
 </template>
 
 <script setup lang="ts">
-const props = defineProps({
+defineProps({
   apiPath: { type: String, default: '' }
 })
 </script>

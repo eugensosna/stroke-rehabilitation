@@ -7,7 +7,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 import VueApexCharts from 'vue3-apexcharts'
 
 const series = ref([
@@ -91,7 +91,7 @@ const chartOptions = ref({
       show: false,
     },
     y: {
-      formatter: function (val) {
+      formatter: function (val: number) {
         return val.toString()
       },
     },

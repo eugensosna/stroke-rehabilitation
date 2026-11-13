@@ -35,7 +35,7 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import DropdownMenu from '../common/DropdownMenu.vue'
 const menuItems = [
@@ -126,7 +126,7 @@ const chartOptions = ref({
       show: false,
     },
     y: {
-      formatter: function (val) {
+      formatter: function (val: number) {
         return val.toString()
       },
     },

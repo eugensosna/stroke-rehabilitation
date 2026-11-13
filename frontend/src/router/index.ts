@@ -32,7 +32,7 @@ const router = createRouter({
     {
       path: '/ecommerce',
       name: 'Ecommerce',
-      component: () => import('../views/Ecommerce.vue'),
+      component: () => import('../views/EcommerceDashboard.vue'),
       meta: {
         title: 'eCommerce Dashboard',
       },
@@ -40,7 +40,7 @@ const router = createRouter({
     {
       path: '/calendar',
       name: 'Calendar',
-      component: () => import('../views/Others/Calendar.vue'),
+      component: () => import('../views/Others/CalendarPage.vue'),
       meta: {
         title: 'Calendar',
       },
@@ -83,7 +83,7 @@ const router = createRouter({
     {
       path: '/alerts',
       name: 'Alerts',
-      component: () => import('../views/UiElements/Alerts.vue'),
+      component: () => import('../views/UiElements/AlertsPage.vue'),
       meta: {
         title: 'Alerts',
       },
@@ -91,7 +91,7 @@ const router = createRouter({
     {
       path: '/avatars',
       name: 'Avatars',
-      component: () => import('../views/UiElements/Avatars.vue'),
+      component: () => import('../views/UiElements/AvatarsPage.vue'),
       meta: {
         title: 'Avatars',
       },
@@ -99,7 +99,7 @@ const router = createRouter({
     {
       path: '/badge',
       name: 'Badge',
-      component: () => import('../views/UiElements/Badges.vue'),
+      component: () => import('../views/UiElements/BadgesPage.vue'),
       meta: {
         title: 'Badge',
       },
@@ -108,7 +108,7 @@ const router = createRouter({
     {
       path: '/buttons',
       name: 'Buttons',
-      component: () => import('../views/UiElements/Buttons.vue'),
+      component: () => import('../views/UiElements/ButtonsPage.vue'),
       meta: {
         title: 'Buttons',
       },
@@ -117,7 +117,7 @@ const router = createRouter({
     {
       path: '/images',
       name: 'Images',
-      component: () => import('../views/UiElements/Images.vue'),
+      component: () => import('../views/UiElements/ImagesPage.vue'),
       meta: {
         title: 'Images',
       },
@@ -125,7 +125,7 @@ const router = createRouter({
     {
       path: '/videos',
       name: 'Videos',
-      component: () => import('../views/UiElements/Videos.vue'),
+      component: () => import('../views/UiElements/VideosPage.vue'),
       meta: {
         title: 'Videos',
       },
