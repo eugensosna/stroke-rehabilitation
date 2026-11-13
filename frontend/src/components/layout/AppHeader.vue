@@ -33,14 +33,14 @@
               fill="currentColor" />
           </svg>
         </button>
-        <SearchBar />
+        <SearchBar v-if="showTemplateMenu" />
       </div>
 
       <div :class="[isApplicationMenuOpen ? 'flex' : 'hidden']"
         class="items-center justify-between w-full gap-4 px-5 py-4 shadow-theme-md lg:flex lg:justify-end lg:px-0 lg:shadow-none">
         <div class="flex items-center gap-2 2xsm:gap-3">
           <ThemeToggler />
-          <NotificationMenu />
+          <NotificationMenu v-if="showTemplateMenu" />
         </div>
         <UserMenu />
       </div>
@@ -49,6 +49,8 @@
 </template>
 
 <script setup lang="ts">
+// пошук і сповіщення шаблону TailAdmin — демонстраційні, пацієнтові не показуються
+const showTemplateMenu = import.meta.env.VITE_SHOW_TEMPLATE_MENU === 'true'
 import { ref } from 'vue'
 import { useSidebar } from '@/composables/useSidebar'
 import ThemeToggler from '../common/ThemeToggler.vue'

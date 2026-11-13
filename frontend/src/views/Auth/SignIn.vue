@@ -146,6 +146,10 @@
                     <router-link to="/signup" class="text-brand-500 hover:text-brand-600 dark:text-brand-400">Sign
                       Up</router-link>
                   </p>
+                  <p class="mt-3 text-sm font-normal text-center text-gray-700 dark:text-gray-400 sm:text-start">
+                    <router-link to="/exercises" class="text-brand-500 hover:text-brand-600 dark:text-brand-400"
+                      data-testid="guest-link">Спробувати без реєстрації</router-link>
+                  </p>
                 </div>
               </div>
             </div>

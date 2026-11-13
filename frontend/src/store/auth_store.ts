@@ -82,9 +82,9 @@ export const AuthStore = defineStore("auth", () => {
   }
 
   const userName = computed(() =>  {
-    let result:string = "Anonym";
+    let result:string = "Гість";
     if (isAuthenticated.value) {
-      result= "User";
+      result= "Користувач";
 
     }
 

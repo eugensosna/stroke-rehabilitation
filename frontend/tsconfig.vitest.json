@@ -1,0 +1,11 @@
+{
+  "extends": "./tsconfig.app.json",
+  "include": ["src/**/__tests__/*", "src/model/**/*.ts", "src/exercises/**/*.ts", "src/config/*.ts", "src/types/*.ts", "src/dev/syntheticHand.ts", "src/utils/frameStats.ts", "env.d.ts"],
+  "exclude": [],
+  "compilerOptions": {
+    "composite": true,
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.vitest.tsbuildinfo",
+    "lib": ["ESNext", "DOM"],
+    "types": ["node"]
+  }
+}

@@ -30,12 +30,12 @@ onMounted(() => {
     <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse">
     </span>
     <img src="/images/icons/on-line.svg" alt="grid" />
-    <span>Online</span>
+    <span>У мережі</span>
   </div>
   <div v-else class="flex items-center gap-2 text-red-500">
     <span class="w-2 h-2 rounded-full bg-red-500 animate-pulse">
     </span>
     <img src="/images/icons/off-line.svg" alt="grid" />
-    <span>Offline</span>
+    <span>Немає зв'язку</span>
   </div>
 </template>

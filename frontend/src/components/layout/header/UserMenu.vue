@@ -39,12 +39,12 @@
       <router-link v-if="isAuthenticated" to="/signout" @click="signOut"
         class="flex items-center gap-3 px-3 py-2 mt-3 font-medium text-gray-700 rounded-lg group text-theme-sm hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300">
         <LogoutIcon class="text-gray-500 group-hover:text-gray-700 dark:group-hover:text-gray-300" />
-        Sign out
+        Вийти
       </router-link>
       <router-link v-else to="/signin" @click="signIn"
         class="flex items-center gap-3 px-3 py-2 mt-3 font-medium text-gray-700 rounded-lg group text-theme-sm hover:bg-gray-100 hover:text-gray-700 dark:text-gray-400 dark:hover:bg-white/5 dark:hover:text-gray-300">
         <LogoutIcon class="text-gray-500 group-hover:text-gray-700 dark:group-hover:text-gray-300" />
-        Sign In
+        Увійти
       </router-link>
     </div>
     <!-- Dropdown End -->
@@ -52,7 +52,7 @@
 </template>
 
 <script setup lang="ts">
-import { UserCircleIcon, ChevronDownIcon, LogoutIcon, SettingsIcon, InfoCircleIcon } from '@/icons'
+import { UserCircleIcon, ChevronDownIcon, LogoutIcon } from '@/icons'
 import { RouterLink } from 'vue-router'
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { AuthStore } from '@/store/auth_store'
@@ -75,9 +75,7 @@ const menuItems = computed(() => {
   }
 
   return [
-    { href: profilepath, icon: UserCircleIcon, text: 'Edit profile' },
-    { href: '/chat', icon: SettingsIcon, text: 'Account settings' },
-    { href: profilepath, icon: InfoCircleIcon, text: 'Support' },
+    { href: profilepath, icon: UserCircleIcon, text: 'Профіль' },
   ];
 });
 

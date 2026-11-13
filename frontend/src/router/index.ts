@@ -2,12 +2,35 @@ import { createRouter, createWebHistory } from 'vue-router'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
-  scrollBehavior(to, from, savedPosition) {
+  scrollBehavior(_to, _from, savedPosition) {
     return savedPosition || { left: 0, top: 0 }
   },
   routes: [
     {
       path: '/',
+      redirect: '/exercises',
+    },
+    {
+      path: '/exercises',
+      name: 'Exercises',
+      component: () => import('../views/exercises/ExercisesList.vue'),
+      meta: { title: 'Вправи' },
+    },
+    {
+      path: '/exercises/:id',
+      name: 'Exercise',
+      component: () => import('../views/exercises/ExerciseView.vue'),
+      // калібрування не обов'язкове: без нього використовуються типові діапазони
+      meta: { title: 'Вправа' },
+    },
+    {
+      path: '/calibration',
+      name: 'Calibration',
+      component: () => import('../views/exercises/CalibrationView.vue'),
+      meta: { title: 'Калібрування' },
+    },
+    {
+      path: '/ecommerce',
       name: 'Ecommerce',
       component: () => import('../views/Ecommerce.vue'),
       meta: {
@@ -156,7 +179,6 @@ const router = createRouter({
 
 export default router
 
-router.beforeEach((to, from, next) => {
-  document.title = `Stroke-rehabilitation ${to.meta.title} | Rehabilitation `
-  next()
+router.beforeEach((to) => {
+  document.title = to.meta.title ? `${to.meta.title} | Реабілітація кисті` : 'Реабілітація кисті'
 })
