@@ -16,6 +16,6 @@
 import AppSidebar from './AppSidebar.vue'
 import AppHeader from './AppHeader.vue'
 import { useSidebar } from '@/composables/useSidebar'
-import Backdrop from './Backdrop.vue'
+import Backdrop from './SidebarBackdrop.vue'
 const { isExpanded, isHovered } = useSidebar()
 </script>

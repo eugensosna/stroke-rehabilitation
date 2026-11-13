@@ -7,7 +7,7 @@
   </AdminLayout>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import BarChartOne from "@/components/charts/BarChart/BarChartOne.vue";
 import ComponentCard from "@/components/common/ComponentCard.vue";
 import PageBreadcrumb from "@/components/common/PageBreadcrumb.vue";

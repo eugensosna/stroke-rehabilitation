@@ -52,6 +52,11 @@ jwt:
   expiration: 3600000
   access-token-expiration-second: 600
 stroke:
+  landmarks:
+    # mock — заглушка Python-сервісу розпізнавання (синтетична кисть); gRPC-клієнт ще не реалізовано
+    detector: ${STROKE_LANDMARKS_DETECTOR:mock}
+    # ліміт кадрів від одного клієнта, кадр/с
+    max-fps: 30
   cors:
     allowed-origins: ${SPRING_ALLOWED_ORIGINS:http://localhost:5173, http://localhost:8080}
   init:

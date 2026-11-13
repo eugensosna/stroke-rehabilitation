@@ -133,7 +133,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { computed } from 'vue'
 import DropdownMenuImport from '../common/DropdownMenu.vue'
 import type { Component } from 'vue'
 const DropdownMenu = DropdownMenuImport as unknown as Component

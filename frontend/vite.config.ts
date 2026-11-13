@@ -6,8 +6,8 @@ import vueJsx from '@vitejs/plugin-vue-jsx'
 import vueDevTools from 'vite-plugin-vue-devtools'
 
 const apiProxyTarget = process.env.VITE_API_PROXY_TARGET || 'http://localhost:8080'
-
-const apiProxyRootTarget = process.env.VITE_API_PROXY_TARGET || 'http://localhost:8080'
+// Резервний режим (WebSocket); для mock-сервера: VITE_WS_PROXY_TARGET=http://localhost:8090
+const wsProxyTarget = process.env.VITE_WS_PROXY_TARGET || apiProxyTarget
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -25,17 +25,23 @@ export default defineConfig({
         target: apiProxyTarget,
         changeOrigin: true,
         secure: false,
-        configure: (proxy, _options) => {
-          proxy.on('error', (err, _req, _res) => {
+        configure: (proxy) => {
+          proxy.on('error', (err) => {
             console.log('proxy error', err)
           })
-          proxy.on('proxyReq', (proxyReq, req, _res) => {
+          proxy.on('proxyReq', (proxyReq, req) => {
             console.log('Sending Request to the Target:', req.method, req.url, proxyReq.path)
           })
-          proxy.on('proxyRes', (proxyRes, req, _res) => {
+          proxy.on('proxyRes', (proxyRes, req) => {
             console.log('Received Response from the Target:', proxyRes.statusCode, req.url)
           })
         },
+      },
+      '/ws': {
+        target: wsProxyTarget,
+        ws: true,
+        changeOrigin: true,
+        secure: false,
       },
     },
   },

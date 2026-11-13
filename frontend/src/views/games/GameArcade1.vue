@@ -7,7 +7,8 @@ import GameControls from '@/components/games/GameControls.vue'
 import SaveStatusBanner from '@/components/games/SaveStatusBanner.vue'
 import { useArcadeGame } from '@/composables/useArcadeGame'
 import { useGameSession } from '@/composables/useGameSession'
-import { useHandTracking } from '@/composables/useHandTracking'
+import { useHandLandmarks } from '@/composables/useHandLandmarks'
+import { wristPoint } from '@/utils/wristPoint'
 import { useWristMotion } from '@/composables/useWristMotion'
 import { AuthStore } from '@/store/auth_store'
 
@@ -26,13 +27,16 @@ const { tracker, printStatistics } = useWristMotion(game.movePaddle)
 const session = useGameSession(GAME_NAME, () => tracker.getHistory())
 const { saveStatus } = session
 
-const { isStreaming, errorMessage, ...camera } = useHandTracking(videoRef, {
-  onWrist: (point) => {
-    tracker.update(point.x, point.y)
-    game.movePaddle(point)
-  },
-  onFrame: (video, wrist) => overlayRef.value?.drawFrame(video, wrist),
-  trackPose: true,
+const hands = useHandLandmarks(videoRef)
+const isStreaming = hands.running
+const errorMessage = hands.error
+hands.onFrame((frame) => {
+  const wrist = wristPoint(frame)
+  if (wrist) {
+    tracker.update(wrist.x, wrist.y)
+    game.movePaddle(wrist)
+  }
+  if (videoRef.value) overlayRef.value?.drawFrame(videoRef.value, wrist)
 })
 
 const startGame = () => {
@@ -50,7 +54,7 @@ const stopGame = () => {
 
 onMounted(() => {
   game.init()
-  camera.start()
+  void hands.start()
 })
 
 onUnmounted(() => {
@@ -59,7 +63,7 @@ onUnmounted(() => {
     game.isGameRunning.value = false
     session.save()
   }
-  camera.stop()
+  hands.stop()
 })
 </script>
 

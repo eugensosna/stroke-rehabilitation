@@ -9,7 +9,7 @@
   </AdminLayout>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import LineChartOne from "@/components/charts/LineChart/LineChartOne.vue";
 import ComponentCard from "@/components/common/ComponentCard.vue";
 import PageBreadcrumb from "@/components/common/PageBreadcrumb.vue";

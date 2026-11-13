@@ -113,7 +113,7 @@
                                 ),
                               },
                             ]">
-                              new
+                              нове
                             </span>
                           </span>
                         </router-link>
@@ -126,7 +126,7 @@
           </div>
         </div>
       </nav>
-      <SidebarWidget v-if="isExpanded || isHovered || isMobileOpen" />
+      <SidebarWidget v-if="showTemplateMenu && (isExpanded || isHovered || isMobileOpen)" />
     </div>
   </aside>
 </template>
@@ -151,70 +151,47 @@ const route = useRoute();
 
 const { isExpanded, isMobileOpen, isHovered, openSubmenu } = useSidebar();
 
-const menuGroups = [
+// Демонстраційні сторінки шаблону TailAdmin і старі ігри не показуються пацієнтові.
+// Ролей користувачів ще немає (задача 5), тому вони вмикаються лише змінною VITE_SHOW_TEMPLATE_MENU=true.
+const showTemplateMenu = import.meta.env.VITE_SHOW_TEMPLATE_MENU === "true";
+
+interface MenuItem {
+  icon?: unknown;
+  name: string;
+  path?: string;
+  subItems?: { name: string; path: string; pro?: boolean }[];
+}
+
+const patientMenu: { title: string; items: MenuItem[] } = {
+  title: "Меню",
+  items: [
+    { icon: GridIcon, name: "Вправи", path: "/exercises" },
+    { icon: PlugInIcon, name: "Калібрування", path: "/calibration" },
+  ],
+};
+
+const templateMenu: { title: string; items: MenuItem[] }[] = [
   {
-    title: "Menu",
+    title: "Шаблон",
     items: [
       {
         icon: GridIcon,
         name: "Dashboard",
-        subItems: [{ name: "Ecommerce", path: "/", pro: false }],
+        subItems: [{ name: "Ecommerce", path: "/ecommerce", pro: false }],
       },
-
       {
         icon: CalenderIcon,
         name: "Calendar",
         path: "/calendar",
       },
       {
+        icon: BoxCubeIcon,
         name: "Games",
-        path: "/games",
         subItems: [
-          {
-            name: "Arkade 1",
-            path: "/game/arkade",
-          },
-          {
-            name: "Arkade 2",
-            path: "/game/arkade2",
-          }
-        ]
-
-      },
-
-
-
-      /*{
-        icon: UserCircleIcon,
-        name: "User Profile",
-        path: "/profile",
-      },
-
-      {
-        name: "Forms",
-        icon: ListIcon,
-        subItems: [
-          { name: "Form Elements", path: "/form-elements", pro: false },
+          { name: "Arkade 1", path: "/game/arkade" },
+          { name: "Arkade 2", path: "/game/arkade2" },
         ],
       },
-      {
-        name: "Tables",
-        icon: TableIcon,
-        subItems: [{ name: "Basic Tables", path: "/basic-tables", pro: false }],
-      },
-      {
-        name: "Pages",
-        icon: PageIcon,
-        subItems: [
-          { name: "Black Page", path: "/blank", pro: false },
-          { name: "404 Page", path: "/error-404", pro: false },
-        ],
-      },*/
-    ],
-  },
-  {
-    title: "Others",
-    items: [
       {
         icon: PieChartIcon,
         name: "Charts",
@@ -235,18 +212,11 @@ const menuGroups = [
           { name: "Videos", path: "/videos", pro: false },
         ],
       },
-      {
-        icon: PlugInIcon,
-        name: "Authentication",
-        subItems: [
-          { name: "SignIn", path: "/signin", pro: false },
-          { name: "SignUp", path: "/signup", pro: false },
-        ],
-      },
-      // ... Add other menu items here
     ],
   },
 ];
+
+const menuGroups = showTemplateMenu ? [patientMenu, ...templateMenu] : [patientMenu];
 
 const isActive = (path: string) => route.path === path;
 

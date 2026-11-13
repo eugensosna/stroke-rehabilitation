@@ -1,6 +1,7 @@
 import { onMounted, onUnmounted, ref, watch, type Ref } from 'vue'
 import { useGameSession } from '@/composables/useGameSession'
-import { useHandTracking } from '@/composables/useHandTracking'
+import { useHandLandmarks } from '@/composables/useHandLandmarks'
+import { wristPoint } from '@/utils/wristPoint'
 import { useWristMotion } from '@/composables/useWristMotion'
 import type { useWebcamStream } from '@/composables/useWebcamStream'
 import { H, W } from './config'
@@ -17,7 +18,7 @@ export interface WristPaddleOptions {
   enabledDetection?: boolean
 }
 
-// Керування ракеткою зап'ястком (MediaPipe Hands, як у GameArcade1) + статистика рухів
+// Керування ракеткою зап'ястком (MediaPipe Hand Landmarker, як у GameArcade1) + статистика рухів
 export function useWristPaddle(
   videoRef: Ref<HTMLVideoElement | null>,
   webcam: ReturnType<typeof useWebcamStream>,
@@ -32,15 +33,16 @@ export function useWristPaddle(
   const { tracker, printStatistics } = useWristMotion(() => {})
   const session = useGameSession(options.gameName, () => tracker.getHistory())
 
-  const hands = useHandTracking(videoRef, {
-    // selfieMode: x уже дзеркальний, 0..1 зліва направо
-    onWrist: (point) => {
-      handX = point.x * W
-      handY = point.y * H
-      handSeenAt = performance.now()
-      if (options.isPlaying()) tracker.update(point.x, point.y)
-    },
-    maxNumHands: 1,
+  // потоком камери керує useWebcamStream, тому власну камеру не запитуємо
+  const hands = useHandLandmarks(videoRef, { autoCamera: false })
+  hands.onFrame((frame) => {
+    // кадр моделі не дзеркальний; екран і поле — дзеркальні
+    const point = wristPoint(frame)
+    if (!point) return
+    handX = point.x * W
+    handY = point.y * H
+    handSeenAt = performance.now()
+    if (options.isPlaying()) tracker.update(point.x, point.y)
   })
 
   const isActive = () => enabled.value && performance.now() - handSeenAt < HAND_LOST_MS
@@ -57,7 +59,7 @@ export function useWristPaddle(
     if (enabled.value) return
     if (!(await webcam.enable())) return
     enabled.value = true
-    hands.attach()
+    void hands.start()
   }
 
   async function toggle() {

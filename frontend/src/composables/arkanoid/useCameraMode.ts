@@ -43,7 +43,7 @@ export function useCameraMode(
     const dh = vh * scale
     c.save()
     c.globalAlpha = opacity.value
-    // дзеркально, як плаваюче вікно і selfieMode у MediaPipe — маркер руки збігається з відео
+    // дзеркально, як плаваюче вікно; x зап'ястка теж дзеркалиться (wristPoint) — маркер руки збігається з відео
     c.translate(W, 0)
     c.scale(-1, 1)
     c.drawImage(v, (W - dw) / 2, (H - dh) / 2, dw, dh)

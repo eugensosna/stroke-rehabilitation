@@ -29,6 +29,12 @@ export interface ArkanoidEngineOptions {
   layers?: SceneLayers
   onGameStart?: () => void
   onGameEnd?: () => void
+  /** М'яч відбито ракеткою (вправа: успішне повторення) */
+  onPaddleHit?: () => void
+  /** Усі м'ячі втрачено, мінус життя (вправа: невдале повторення) */
+  onLifeLost?: () => void
+  /** Автоматичний запуск м'яча з ракетки через стільки мс (керування лише кистю, без клавіш) */
+  autoLaunchMs?: number
 }
 
 // Стан гри, фізика, ігровий цикл (60 FPS через requestAnimationFrame) і малювання
@@ -57,6 +63,7 @@ export function useArkanoidEngine(canvasRef: Ref<HTMLCanvasElement | null>, opti
   let rafId = 0
   let lastTime = 0
   let ballStuck = true
+  let stuckMs = 0
 
   // -------------------------------------------------------------------------
   // Побудова рівня
@@ -109,6 +116,7 @@ export function useArkanoidEngine(canvasRef: Ref<HTMLCanvasElement | null>, opti
     balls.length = 0
     balls.push({ x: paddle.x + paddle.w / 2, y: PADDLE_Y - 12, vx: 0, vy: 0, r: 10 })
     ballStuck = true
+    stuckMs = 0
   }
 
   function startGame() {
@@ -148,6 +156,7 @@ export function useArkanoidEngine(canvasRef: Ref<HTMLCanvasElement | null>, opti
   }
 
   function loseLife() {
+    options.onLifeLost?.()
     lives.value--
     if (lives.value <= 0) endGame('gameover')
     else placeStuckBall()
@@ -263,6 +272,7 @@ export function useArkanoidEngine(canvasRef: Ref<HTMLCanvasElement | null>, opti
         b.vx = Math.cos(angle) * spd
         b.vy = Math.sin(angle) * spd
         sfx.paddle()
+        options.onPaddleHit?.()
       }
 
       hitBrick(nx, ny, b)
@@ -328,6 +338,10 @@ export function useArkanoidEngine(canvasRef: Ref<HTMLCanvasElement | null>, opti
 
   function update(dt: number) {
     updatePaddle()
+    if (ballStuck && options.autoLaunchMs !== undefined) {
+      stuckMs += dt
+      if (stuckMs >= options.autoLaunchMs) launch()
+    }
     // dt-нормалізований крок (однакова швидкість незалежно від FPS)
     const step = dt / (1000 / 60)
     if (!updateBalls(step)) return

@@ -6,7 +6,9 @@
     "cypress.config.*",
     "nightwatch.conf.*",
     "playwright.config.*",
-    "eslint.config.*"
+    "eslint.config.*",
+    "scripts/**/*.ts",
+    "src/dev/syntheticHand.ts"
   ],
   "compilerOptions": {
     "noEmit": true,
@@ -15,6 +17,7 @@
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "types": ["node"],
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "allowImportingTsExtensions": true
   }
 }

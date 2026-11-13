@@ -1,0 +1,49 @@
+// Контракт сервісу розпізнавання кисті (Python, MediaPipe Hand Landmarker) для резервного режиму.
+// Сервіс ще не реалізовано: бекенд використовує заглушку MockHandLandmarkDetector
+// (stroke.landmarks.detector=mock). Робоча реалізація HandLandmarkDetector на бекенді —
+// gRPC-клієнт цього сервісу.
+//
+// Вимоги до сервісу:
+//  - Hand Landmarker у режимі VIDEO або IMAGE, num_hands = 1, впевненість виявлення і відстеження 0,5;
+//  - зображення обробляються в пам'яті, не записуються на диск і в журнали;
+//  - мітка руки (handedness) повертається як є, без виправлення дзеркалення.
+syntax = "proto3";
+
+package stroke.landmarks.v1;
+
+option java_multiple_files = true;
+option java_package = "ua.edu.zsea.sosna.stroke.landmarks.grpc";
+
+service HandLandmarks {
+  // Один кадр — одна відповідь (клієнт тримає не більше одного кадру в дорозі)
+  rpc Detect(DetectRequest) returns (DetectResponse);
+}
+
+message DetectRequest {
+  // Стиснуте зображення, недзеркальне, коротша сторона 256 пікс.
+  bytes image = 1;
+  // "image/webp" або "image/jpeg"
+  string mime_type = 2;
+  // Розмір вихідного кадру вебкамери, пікс. (для нормованих координат)
+  uint32 width = 3;
+  uint32 height = 4;
+  // Ідентифікатор з'єднання WebSocket: окремий стан трекера для кожного клієнта (режим VIDEO)
+  string stream_id = 5;
+  // Часова мітка кадру, мс (монотонна в межах stream_id)
+  double timestamp_ms = 6;
+}
+
+message Landmark {
+  // Нормовані координати MediaPipe: x, y — частки ширини/висоти, z — відносно зап'ястка
+  float x = 1;
+  float y = 2;
+  float z = 3;
+}
+
+message DetectResponse {
+  // Порожньо, якщо кисть не знайдено; інакше рівно 21 точка
+  repeated Landmark landmarks = 1;
+  // "Left" / "Right" як повертає MediaPipe; порожньо, якщо кисті немає
+  string handedness = 2;
+  float score = 3;
+}

@@ -2,14 +2,37 @@ import { createRouter, createWebHistory } from 'vue-router'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
-  scrollBehavior(to, from, savedPosition) {
+  scrollBehavior(_to, _from, savedPosition) {
     return savedPosition || { left: 0, top: 0 }
   },
   routes: [
     {
       path: '/',
+      redirect: '/exercises',
+    },
+    {
+      path: '/exercises',
+      name: 'Exercises',
+      component: () => import('../views/exercises/ExercisesList.vue'),
+      meta: { title: 'Вправи' },
+    },
+    {
+      path: '/exercises/:id',
+      name: 'Exercise',
+      component: () => import('../views/exercises/ExerciseView.vue'),
+      // калібрування не обов'язкове: без нього використовуються типові діапазони
+      meta: { title: 'Вправа' },
+    },
+    {
+      path: '/calibration',
+      name: 'Calibration',
+      component: () => import('../views/exercises/CalibrationView.vue'),
+      meta: { title: 'Калібрування' },
+    },
+    {
+      path: '/ecommerce',
       name: 'Ecommerce',
-      component: () => import('../views/Ecommerce.vue'),
+      component: () => import('../views/EcommerceDashboard.vue'),
       meta: {
         title: 'eCommerce Dashboard',
       },
@@ -17,7 +40,7 @@ const router = createRouter({
     {
       path: '/calendar',
       name: 'Calendar',
-      component: () => import('../views/Others/Calendar.vue'),
+      component: () => import('../views/Others/CalendarPage.vue'),
       meta: {
         title: 'Calendar',
       },
@@ -60,7 +83,7 @@ const router = createRouter({
     {
       path: '/alerts',
       name: 'Alerts',
-      component: () => import('../views/UiElements/Alerts.vue'),
+      component: () => import('../views/UiElements/AlertsPage.vue'),
       meta: {
         title: 'Alerts',
       },
@@ -68,7 +91,7 @@ const router = createRouter({
     {
       path: '/avatars',
       name: 'Avatars',
-      component: () => import('../views/UiElements/Avatars.vue'),
+      component: () => import('../views/UiElements/AvatarsPage.vue'),
       meta: {
         title: 'Avatars',
       },
@@ -76,7 +99,7 @@ const router = createRouter({
     {
       path: '/badge',
       name: 'Badge',
-      component: () => import('../views/UiElements/Badges.vue'),
+      component: () => import('../views/UiElements/BadgesPage.vue'),
       meta: {
         title: 'Badge',
       },
@@ -85,7 +108,7 @@ const router = createRouter({
     {
       path: '/buttons',
       name: 'Buttons',
-      component: () => import('../views/UiElements/Buttons.vue'),
+      component: () => import('../views/UiElements/ButtonsPage.vue'),
       meta: {
         title: 'Buttons',
       },
@@ -94,7 +117,7 @@ const router = createRouter({
     {
       path: '/images',
       name: 'Images',
-      component: () => import('../views/UiElements/Images.vue'),
+      component: () => import('../views/UiElements/ImagesPage.vue'),
       meta: {
         title: 'Images',
       },
@@ -102,7 +125,7 @@ const router = createRouter({
     {
       path: '/videos',
       name: 'Videos',
-      component: () => import('../views/UiElements/Videos.vue'),
+      component: () => import('../views/UiElements/VideosPage.vue'),
       meta: {
         title: 'Videos',
       },
@@ -156,7 +179,6 @@ const router = createRouter({
 
 export default router
 
-router.beforeEach((to, from, next) => {
-  document.title = `Stroke-rehabilitation ${to.meta.title} | Rehabilitation `
-  next()
+router.beforeEach((to) => {
+  document.title = to.meta.title ? `${to.meta.title} | Реабілітація кисті` : 'Реабілітація кисті'
 })

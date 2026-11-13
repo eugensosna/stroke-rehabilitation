@@ -1,0 +1,152 @@
+# Версія 1.1 — ігрові вправи (задачі 3–4): звіти серій, калібрування, налаштування вправ.
+# Звіт серії та діапазони калібрування зберігаються як JSON (лише числові показники,
+# без координат ключових точок і зображень); ключові поля винесено в стовпці для вибірок.
+databaseChangeLog:
+  - changeSet:
+      id: 1.1-01-exercise-series
+      author: yevhen.sosna
+      changes:
+        - createTable:
+            tableName: exercise_series
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: exercise_series_pkey
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_exercise_series_user
+                    references: users(id)
+              - column:
+                  name: exercise_id
+                  type: varchar(32)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: started_at
+                  type: timestamp with time zone
+                  constraints:
+                    nullable: false
+              - column:
+                  name: saved_at
+                  type: timestamp with time zone
+                  constraints:
+                    nullable: false
+              - column:
+                  name: attempts
+                  type: integer
+                  constraints:
+                    nullable: false
+              - column:
+                  name: successes
+                  type: integer
+                  constraints:
+                    nullable: false
+              - column:
+                  name: start_level
+                  type: integer
+                  constraints:
+                    nullable: false
+              - column:
+                  name: end_level
+                  type: integer
+                  constraints:
+                    nullable: false
+              - column:
+                  name: report
+                  type: ${type.text}
+                  constraints:
+                    nullable: false
+        - createIndex:
+            tableName: exercise_series
+            indexName: ix_exercise_series_user_started
+            columns:
+              - column:
+                  name: user_id
+              - column:
+                  name: started_at
+
+  - changeSet:
+      id: 1.1-02-calibrations
+      author: yevhen.sosna
+      changes:
+        - createTable:
+            tableName: calibrations
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: calibrations_pkey
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_calibrations_user
+                    references: users(id)
+              - column:
+                  name: created_at
+                  type: timestamp with time zone
+                  constraints:
+                    nullable: false
+              - column:
+                  name: kind
+                  type: varchar(16)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: ranges
+                  type: ${type.text}
+                  constraints:
+                    nullable: false
+        - createIndex:
+            tableName: calibrations
+            indexName: ix_calibrations_user_created
+            columns:
+              - column:
+                  name: user_id
+              - column:
+                  name: created_at
+
+  - changeSet:
+      id: 1.1-03-exercise-settings
+      author: yevhen.sosna
+      changes:
+        - createTable:
+            tableName: exercise_settings
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  constraints:
+                    primaryKey: true
+                    primaryKeyName: exercise_settings_pkey
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: bigint
+                  constraints:
+                    nullable: false
+                    unique: true
+                    uniqueConstraintName: uk_exercise_settings_user
+                    foreignKeyName: fk_exercise_settings_user
+                    references: users(id)
+              - column:
+                  name: settings
+                  type: ${type.text}
+                  constraints:
+                    nullable: false
+              - column:
+                  name: updated_at
+                  type: timestamp with time zone
+                  constraints:
+                    nullable: false

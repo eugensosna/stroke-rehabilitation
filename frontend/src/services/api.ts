@@ -1,5 +1,6 @@
 import { AuthStore } from '@/store/auth_store'
 import axios from 'axios'
+import { installMockAdapter } from './mock_adapter'
 let baseURL = (import.meta.env.VITE_API_BASE_URL as string | undefined) ?? '' + '/api'
 if (!baseURL.endsWith('/api')) {
   baseURL += '/api'
@@ -10,6 +11,10 @@ export const api = axios.create({
   timeout: 10_000,
   headers: { 'Content-Type': 'application/json' },
 })
+
+// Ресурси вправ і калібрування обслуговує локальний адаптер у mock-режимі (VITE_USE_MOCKS=true)
+// і для гостя без входу; решта запитів іде на бекенд
+installMockAdapter(api)
 
 // Attach JWT token to every request
 api.interceptors.request.use((config) => {
@@ -79,7 +84,9 @@ api.interceptors.response.use(
     const original = error.config
     // помилки login/register/refresh обробляє сам виклик
     const isAuthCall = typeof original?.url === 'string' && original.url.startsWith('/auth/')
-    if (error.response?.status === 401 && original && !isAuthCall && !original._retry) {
+    // запит гостя без токена — без перенаправлення на вхід (гостьовий режим)
+    const hadToken = !!original?.headers?.Authorization
+    if (error.response?.status === 401 && original && !isAuthCall && !original._retry && hadToken) {
       original._retry = true
       if (sessionStorage.getItem('refreshToken')) {
         try {
