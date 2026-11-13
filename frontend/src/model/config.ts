@@ -14,7 +14,7 @@ export const FINGERS: readonly Finger[] = [1, 2, 3, 4, 5]
 export const OPPOSED_FINGERS: readonly OpposedFinger[] = [2, 3, 4, 5]
 
 /** Рід керуючого показника — визначає одиниці і типовий Δx_min */
-export type MetricKind = 'distance' | 'openness' | 'flexion' | 'depth'
+export type MetricKind = 'distance' | 'openness' | 'flexion' | 'depth' | 'position'
 
 /** Параметри фільтра 1€ (формули «Фільтрація координат») */
 export interface OneEuroParams {
@@ -147,7 +147,7 @@ export const DEFAULT_MODEL_CONFIG: ModelConfig = {
   calibration: {
     pLow: 0.05,
     pHigh: 0.95,
-    dxMin: { distance: 0.15, openness: 0.15, flexion: 0.35, depth: 0.03 },
+    dxMin: { distance: 0.15, openness: 0.15, flexion: 0.35, depth: 0.03, position: 0.1 },
     prepS: 3,
     recordS: 5,
   },

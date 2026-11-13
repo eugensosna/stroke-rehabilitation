@@ -11,7 +11,8 @@ import type { ExerciseId } from '@/types/exercise'
 import type { Finger } from '@/model/config'
 import BalloonFlight from './BalloonFlight.vue'
 import CodeLock from './CodeLock.vue'
-import PianoKeys from './PianoKeys.vue'
+import ArkanoidExercise from './ArkanoidExercise.vue'
+import Arkade2Exercise from './Arkade2Exercise.vue'
 import PinchGarden from './PinchGarden.vue'
 
 const route = useRoute()
@@ -76,7 +77,6 @@ onMounted(async () => {
       :settings="store.settings!"
       :start-level="store.startLevel(definition.id)"
       :initial-target="availableFingers[0] ?? definition.defaultTarget"
-      :success-sound="definition.id !== 'isolatedFinger'"
     >
       <template #default="{ exercise, audio }">
         <PinchGarden v-if="definition.id === 'pinch'" :exercise="exercise" />
@@ -86,12 +86,8 @@ onMounted(async () => {
           :exercise="exercise"
           :frequency-hz="store.settings!.targetFrequencyHz"
         />
-        <PianoKeys
-          v-else-if="definition.id === 'isolatedFinger'"
-          :exercise="exercise"
-          :fingers="availableFingers"
-          :play-note="audio.note"
-        />
+        <ArkanoidExercise v-else-if="definition.id === 'arkanoid'" :exercise="exercise" />
+        <Arkade2Exercise v-else-if="definition.id === 'arkade2'" :exercise="exercise" :sound="audio.enabled.value" />
       </template>
     </ExerciseShell>
   </AdminLayout>

@@ -6,7 +6,12 @@
 Кадри не зберігаються ні на клієнті, ні на сервері.
 
 Реалізація клієнта: `frontend/src/services/landmarks_socket.ts`.
-Mock-сервер для розробки: `frontend/scripts/mock-landmarks-ws.ts`.
+Реалізація сервера: `backend/…/landmarks/LandmarksWebSocketHandler.java` (Spring WebSocket, перевірка JWT,
+ліміт `stroke.landmarks.max-fps`, типово 30 кадр/с).
+Розпізнавання — інтерфейс `HandLandmarkDetector`. Python-сервіс MediaPipe ще не реалізовано: працює заглушка
+`MockHandLandmarkDetector` (`stroke.landmarks.detector=mock`, синтетична кисть, що розкривається і стискається).
+Контракт gRPC для Python-сервісу — `docs/proto/hand_landmarks.proto`.
+Mock-сервер для розробки без бекенду: `frontend/scripts/mock-landmarks-ws.ts`.
 
 ## З'єднання
 

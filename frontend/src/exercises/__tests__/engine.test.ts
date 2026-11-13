@@ -201,10 +201,9 @@ describe('додаткові умови вправ', () => {
 
 describe('калібрування', () => {
   it('скорочене калібрування — вихідне положення і рухи обраних вправ', () => {
-    // повне — кроки для вправ застосунку (дотики 3–5 лише для «протиставлення», якого немає в списку)
-    expect(calibrationSteps('full').map((s) => s.id)).toEqual(
-      CALIBRATION_STEPS.filter((s) => !s.id.startsWith('touch')).map((s) => s.id),
-    )
+    // повне — кроки для вправ застосунку (дотики і згинання лише для вправ без гри)
+    expect(calibrationSteps('full').map((s) => s.id)).toEqual(['rest', 'openClose', 'pinch'])
+    expect(CALIBRATION_STEPS).toHaveLength(11)
     expect(calibrationSteps('short', ['keypad']).map((s) => s.id)).toEqual(['rest'])
     expect(calibrationSteps('short', ['pinch']).map((s) => s.id)).toEqual(['rest', 'pinch'])
     expect(calibrationSteps('short', ['opposition']).map((s) => s.id)).toEqual(['rest', 'pinch', 'touch3', 'touch4', 'touch5'])
@@ -220,7 +219,7 @@ describe('калібрування', () => {
     expect(O.unavailable).toBe(false)
     const d2 = stepRange('d2', rest, rest, DEFAULT_MODEL_CONFIG.calibration)!
     expect(d2.unavailable).toBe(true)
-    expect(availableExercises({ O, d2 })).toEqual(['keypad', 'openClose']) // вказування не потребує калібрування
+    expect(availableExercises({ O, d2 })).toEqual(['keypad', 'openClose', 'arkanoid', 'arkade2']) // вказування і положення не калібруються
     expect(sampleMetrics(rest, ['O']).O).toHaveLength(rest.length)
     expect(stepRange('O', [], [], DEFAULT_MODEL_CONFIG.calibration)).toBeNull()
   })

@@ -105,7 +105,7 @@ export function buildSeriesReport(input: SeriesReportInput): SeriesReport {
     successRatePct: N > 0 ? round((Ns / N) * 100, 1) : null,
     meanAmplitude: round(mean(amps)),
     maxAmplitude: amps.length > 0 ? round(Math.max(...amps)) : null,
-    amplitudeUnit: def.kind === 'flexion' ? 'deg' : def.kind === 'depth' ? 'depth' : 's',
+    amplitudeUnit: def.kind === 'flexion' ? 'deg' : def.kind === 'depth' ? 'depth' : def.kind === 'position' ? 'frame' : 's',
     frequencyHz: round(repetitionFrequency(T)),
     rhythmCvPct: round(intervalVariation(T), 2),
     meanHoldTimeS: round(mean(holds), 3),

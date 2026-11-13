@@ -1,7 +1,7 @@
 import { isAxiosError } from 'axios'
 import { api } from './api'
 import { DEFAULT_EXERCISE_SETTINGS } from '@/exercises/definitions'
-import type { ExerciseSettings, SeriesRecord, SeriesReport } from '@/types/exercise'
+import type { ExerciseId, ExerciseSettings, SeriesRecord, SeriesReport } from '@/types/exercise'
 import { isRecord, unexpectedResponse } from './response_guard'
 
 /** Звіти серій і налаштування вправ. Контракт — docs/api-exercise.md */
@@ -36,8 +36,9 @@ export const ExerciseService = {
         throw unexpectedResponse('/exercise-settings/my', response.data)
       }
       const s = (response.data ?? {}) as Partial<ExerciseSettings>
-      // «Кодовий замок» раніше був вправою на протиставлення
-      if (s.exercises) s.exercises = [...new Set(s.exercises.map((e) => (e === 'opposition' ? 'keypad' : e)))]
+      // вправи без гри замінено: протиставлення → «Кодовий замок», ізольовані рухи (піаніно) → «Арканоїд»
+      const replaced: Partial<Record<ExerciseId, ExerciseId>> = { opposition: 'keypad', isolatedFinger: 'arkanoid' }
+      if (s.exercises) s.exercises = [...new Set(s.exercises.map((e) => replaced[e] ?? e))]
       return {
         ...DEFAULT_EXERCISE_SETTINGS,
         ...s,

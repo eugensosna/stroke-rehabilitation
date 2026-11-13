@@ -7,7 +7,7 @@ import type { Landmark } from '@/types/landmarks'
 import { syntheticHand, type SyntheticHandParams } from './syntheticHand'
 
 export interface DemoIntent {
-  kind: 'rest' | 'open' | 'pinch' | 'touch' | 'flex' | 'point'
+  kind: 'rest' | 'open' | 'pinch' | 'touch' | 'flex' | 'point' | 'sweep'
   /** Палець для touch/flex */
   k?: number
 }
@@ -58,12 +58,17 @@ export function demoLandmarks(t: number, W: number, H: number): Landmark[] {
     case 'flex':
       p.flex = { [intent.k ?? 2]: a }
       break
+    case 'sweep':
+      // розслаблена кисть ходить ліворуч-праворуч
+      p.flex = { 1: 0.1, 2: 0.1, 3: 0.1, 4: 0.1, 5: 0.1 }
+      p.cx = 0.5 + 0.28 * Math.sin(t * 1.1)
+      break
     case 'point':
-      // прямий вказівний, інші зігнуті; кисть водить пальцем і «натискає» наближенням (+15 % розміру)
+      // прямий вказівний, інші зігнуті; кисть водить пальцем і «натискає» наближенням (+35 % розміру)
       p.flex = { 1: 0.6, 2: 0, 3: 1, 4: 1, 5: 1 }
       p.cx = 0.5 + 0.1 * Math.sin(t * 0.7)
       p.cy = 0.85 + 0.06 * Math.sin(t * 0.43)
-      p.size = H * 0.2 * (1 + 0.15 * a)
+      p.size = H * 0.2 * (1 + 0.35 * a)
       break
     default:
       p.flex = { 1: 0.1, 2: 0.1, 3: 0.1, 4: 0.1, 5: 0.1 }

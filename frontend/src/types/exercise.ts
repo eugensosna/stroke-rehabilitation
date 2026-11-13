@@ -6,13 +6,14 @@ import type { Finger, LevelParams, MetricKind } from '@/model/config'
 import type { TrackingMode } from './landmarks'
 
 /** Вправи з табл. 2.1 роботи */
-export type ExerciseId = 'pinch' | 'opposition' | 'keypad' | 'openClose' | 'isolatedFinger'
+export type ExerciseId = 'pinch' | 'opposition' | 'keypad' | 'openClose' | 'isolatedFinger' | 'arkanoid' | 'arkade2'
 
 /**
  * Керуючі показники: d_2..d_5 (частки s), O (частки s), Φ_1..Φ_5 (рад у моделі, градуси у звітах),
- * Z — наближення кисті до камери, частка початкової відстані: Z = 1 − s₀/s.
+ * Z — наближення кисті до камери, частка початкової відстані: Z = 1 − s₀/s;
+ * X — горизонтальне положення центру долоні на екрані, частка ширини кадру (0 — ліворуч).
  */
-export type ControlMetric = 'd2' | 'd3' | 'd4' | 'd5' | 'O' | 'Phi1' | 'Phi2' | 'Phi3' | 'Phi4' | 'Phi5' | 'Z'
+export type ControlMetric = 'd2' | 'd3' | 'd4' | 'd5' | 'O' | 'Phi1' | 'Phi2' | 'Phi3' | 'Phi4' | 'Phi5' | 'Z' | 'X'
 
 /** Діапазон калібрування в одиницях моделі (радіани для кутів, частки s для відстаней) */
 export interface StoredRange {
@@ -99,7 +100,7 @@ export interface SeriesReport {
   /** Ā, A_max — градуси або частки s */
   meanAmplitude: number | null
   maxAmplitude: number | null
-  amplitudeUnit: 'deg' | 's' | 'depth'
+  amplitudeUnit: 'deg' | 's' | 'depth' | 'frame'
   /** f, Гц; null при M < 3 */
   frequencyHz: number | null
   /** V, %; null при M < 3 */

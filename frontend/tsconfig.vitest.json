@@ -1,6 +1,6 @@
 {
   "extends": "./tsconfig.app.json",
-  "include": ["src/**/__tests__/*", "src/model/**/*.ts", "src/exercises/**/*.ts", "src/config/*.ts", "src/types/*.ts", "src/dev/syntheticHand.ts", "src/utils/frameStats.ts", "env.d.ts"],
+  "include": ["src/**/__tests__/*", "src/model/**/*.ts", "src/exercises/**/*.ts", "src/config/*.ts", "src/games/*.ts", "src/types/*.ts", "src/dev/syntheticHand.ts", "src/utils/frameStats.ts", "env.d.ts"],
   "exclude": [],
   "compilerOptions": {
     "composite": true,

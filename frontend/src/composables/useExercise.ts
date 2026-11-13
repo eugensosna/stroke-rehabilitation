@@ -93,20 +93,33 @@ export function useExercise(
     level.value = upd.level
     hintId.value = upd.hint
     feedback.value = upd.feedback
-    for (const e of upd.events) {
+    applyEvents(upd.events, upd.t)
+  }
+
+  /** Бали, лічильники і події для гри; завершення серії */
+  function applyEvents(events: FsmEvent[], t: number) {
+    for (const e of events) {
       if (e.type === 'success') {
         successes.value++
-        // невдала спроба не зменшує бали
-        score.value += (options.scoreBase ?? 10) + (options.scoreLevelBonus ?? 2) * upd.level
+        // невдала спроба не зменшує бали; бал — за рівнем, на якому виконано спробу
+        score.value += (options.scoreBase ?? 10) + (options.scoreLevelBonus ?? 2) * level.value
       }
       if (e.type === 'repetitionEnd') repetitions.value = engine.value.repetitions.length
       emit(e)
     }
+    level.value = engine.value.level
     if (repetitions.value >= total.value && !finished.value) {
       finished.value = true
       running.value = false
-      emit({ type: 'seriesComplete', t: upd.t })
+      emit({ type: 'seriesComplete', t })
     }
+  }
+
+  /** Керування положенням: гра повідомляє результат повторення (м'яч відбито / пропущено) */
+  function reportOutcome(success: boolean) {
+    if (!running.value || finished.value) return
+    const events = engine.value.gameOutcome(success)
+    if (events.length) applyEvents(events, events[0].t)
   }
 
   const off = source.onFrame(handleFrame)
@@ -218,6 +231,7 @@ export function useExercise(
     finish,
     setTarget,
     setPointerJudge,
+    reportOutcome,
     report,
     save,
     /** Порог цілі поточного рівня (для відображення цілі в грі) */

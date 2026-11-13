@@ -71,7 +71,15 @@ onMounted(() => {
 if (isDemoMode()) {
   watchEffect(() => {
     const k = exercise.target.value ?? undefined
-    const kind = { pinch: 'pinch', opposition: 'touch', keypad: 'point', openClose: 'open', isolatedFinger: 'flex' } as const
+    const kind = {
+      pinch: 'pinch',
+      opposition: 'touch',
+      keypad: 'point',
+      openClose: 'open',
+      isolatedFinger: 'flex',
+      arkanoid: 'sweep',
+      arkade2: 'sweep',
+    } as const
     setDemoIntent({ kind: kind[props.definition.id], k })
   })
 }

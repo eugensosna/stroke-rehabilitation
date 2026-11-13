@@ -84,7 +84,7 @@ export const CALIBRATION_STEPS: CalibrationStep[] = [
   ),
 ]
 
-/** Крок калібрування для показника (Z не калібрується — він відносний) */
+/** Крок калібрування для показника (Z і X не калібруються) */
 const STEP_BY_METRIC: Partial<Record<ControlMetric, CalibrationStepId>> = {
   O: 'openClose',
   d2: 'pinch',
@@ -184,8 +184,10 @@ export const DEFAULT_CALIBRATION_RANGES: Readonly<Record<ControlMetric, StoredRa
   Phi3: { xr: 0.6, xg: 2.0, unavailable: false },
   Phi4: { xr: 0.6, xg: 2.0, unavailable: false },
   Phi5: { xr: 0.6, xg: 2.0, unavailable: false },
-  // натискання — наближення кисті до камери на 10 % відстані
-  Z: { xr: 0, xg: 0.1, unavailable: false },
+  // натискання — наближення кисті до камери на 20 % відстані (видимий розмір зростає в 1/0,8 = 1,25 раза)
+  Z: { xr: 0, xg: 0.2, unavailable: false },
+  // ракетка: центр долоні від 25 % до 75 % ширини кадру проходить усе поле
+  X: { xr: 0.25, xg: 0.75, unavailable: false },
 }
 
 /** Діапазони для вправи: власне калібрування пацієнта, а для показників без нього — типові значення */

@@ -21,10 +21,10 @@ describe('палець-вказівник', () => {
 })
 
 describe('глибина натискання Z = 1 − s₀/s', () => {
-  it('наближення на 10 % відстані — розмір зростає в 1/0,9 раза', () => {
+  it('наближення на 20 % відстані — розмір зростає в 1/0,8 раза', () => {
     const d = new DepthTracker(1)
     for (let i = 0; i <= 60; i++) d.update(100, i / 30, false)
-    expect(d.update(100 / 0.9, 2.05, true)).toBeCloseTo(0.1, 6)
+    expect(d.update(100 / 0.8, 2.05, true)).toBeCloseTo(0.2, 6)
   })
 
   it('повільне наближення підтягує базову відстань', () => {
@@ -69,8 +69,8 @@ function pointFrames(size: (t: number) => number, duration: number, flexIndex = 
   return frames
 }
 
-/** 2 с спокійно, натискання +15 % розміру за 0,3 с, 0,6 с утримання, повернення */
-const press = (t: number) => (t < 2 ? 100 : t < 2.3 ? 100 + 50 * (t - 2) : t < 2.9 ? 115 : t < 3.2 ? 115 - 50 * (t - 2.9) : 100)
+/** 2 с спокійно, натискання +35 % розміру (Z ≈ 0,26) за 0,3 с, 0,6 с утримання, повернення */
+const press = (t: number) => (t < 2 ? 100 : t < 2.3 ? 100 + 117 * (t - 2) : t < 2.9 ? 135 : t < 3.2 ? 135 - 117 * (t - 2.9) : 100)
 
 function run(judge: PointerJudge | null, frames: HandFrame[]) {
   const engine = new ExerciseEngine(EXERCISES.keypad, effectiveRanges(null), {
@@ -132,8 +132,8 @@ describe('вправа «Кодовий замок» (вказування)', ()
   })
 
   it('недотиснули і відвели кисть — спроба скасовується', () => {
-    // лише +5 % розміру (Z ≈ 0,048 < 0,1)
-    const half = (t: number) => (t < 2 ? 100 : t < 2.6 ? 105 : 100)
+    // лише +12 % розміру (Z ≈ 0,11 < 0,2)
+    const half = (t: number) => (t < 2 ? 100 : t < 2.6 ? 112 : 100)
     const { engine, events } = run(judge(true), pointFrames(half, 4))
     expect(engine.repetitions).toHaveLength(0)
     expect(events).not.toContain('fail')

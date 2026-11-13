@@ -55,6 +55,8 @@ public class CustomSecurityConfig {
 					authz.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll();
 					authz.requestMatchers("/api/auth/**").permitAll();
 					authz.requestMatchers("/api/auth/ping").permitAll();
+					// WebSocket резервного режиму: маркер перевіряється першим повідомленням
+					authz.requestMatchers("/ws/**").permitAll();
 
 					// Authenticated API endpoints
 					authz.requestMatchers("/api/**").authenticated();

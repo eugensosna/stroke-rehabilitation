@@ -69,6 +69,11 @@ export interface EngineFeedback {
   movedFingers: Finger[]
   /** Вправа з вказуванням: палець-вказівник; null — прямого пальця немає */
   pointer?: PointerFeedback | null
+  /**
+   * Керування положенням: 21 точка кисті в екранних частках (дзеркально) для показу кисті в грі.
+   * Лише для відображення в браузері, у звіти не потрапляє.
+   */
+  hand?: { x: number; y: number }[] | null
 }
 
 export interface EngineUpdate {
@@ -123,6 +128,15 @@ export class ExerciseEngine {
   private lockedKey: string | null = null
   private lockedFinger: OpposedFinger | null = null
   private noPointer = false
+  // керування положенням: кадри від попереднього результату гри
+  private posSamples: { t: number[]; x: number[]; u: number[]; ts: number | null; paused: boolean } = {
+    t: [],
+    x: [],
+    u: [],
+    ts: null,
+    paused: false,
+  }
+  private lastT = 0
   private readonly stats: FrameStatsSummary = {
     frames: 0,
     handFrames: 0,
@@ -174,6 +188,37 @@ export class ExerciseEngine {
     return !r || r.unavailable
   }
 
+  /**
+   * Керування положенням: результат повторення визначає гра (м'яч відбито — успіх, пропущено — невдача).
+   * Повторення охоплює кадри від попереднього результату; A_m — розмах руху долоні за цей час.
+   * @returns події success/fail і repetitionEnd
+   */
+  gameOutcome(success: boolean): FsmEvent[] {
+    if (this.fsm.state === 'Paused') return []
+    const t = this.lastT
+    const s = this.posSamples
+    const level = this.staircase.level
+    const record: RepetitionRecord = {
+      ts: s.ts ?? t,
+      tm: success ? t : null,
+      te: t,
+      success,
+      level,
+      thresholds: levelThresholds(level, this.config.levels),
+      holdTime: 0,
+      t: s.t,
+      x: s.x,
+      u: s.u,
+      Phi: null,
+      pausedBefore: s.paused,
+    }
+    this.posSamples = { t: [], x: [], u: [], ts: t, paused: false }
+    this.staircase.record(success)
+    this.repetitions.push({ ...record, target: null, metric: this.metric, peakJoints: null })
+    this.restSuggested = this.checkFatigue()
+    return [{ type: success ? 'success' : 'fail', t }, { type: 'repetitionEnd', t, record }]
+  }
+
   /** Гра з вказуванням: визначення клавіші під пальцем і її правильності */
   setPointerJudge(judge: PointerJudge | null): void {
     this.judge = judge
@@ -223,6 +268,17 @@ export class ExerciseEngine {
     let isolationOk: boolean | undefined
     if (this.depth) {
       ;({ x, u, isolationOk } = this.pointerStep(t, P, m, frame, feedback, pre))
+    } else if (this.definition.control === 'position') {
+      x = feedback.handPos?.x
+      u = x !== undefined && range ? normalize(x, range) : 0
+      feedback.hand = P ? this.screenPoints(P, frame.width, frame.height) : null
+      if (x !== undefined) {
+        const s = this.posSamples
+        s.ts ??= t
+        s.t.push(t)
+        s.x.push(x)
+        s.u.push(u)
+      }
     } else {
       x = m ? metricValue(m, this.metric) : undefined
       u = m && range && !range.unavailable && x !== undefined ? normalize(x, range) : 0
@@ -232,7 +288,10 @@ export class ExerciseEngine {
     if (this.prevT !== null && this.fsm.state !== 'Paused') this.stats.activeS += Math.min(0.5, Math.max(0, t - this.prevT))
     this.prevT = t
 
-    let events = [...pre, ...this.fsm.step({ t, u, handPresent, isolationOk, x, Phi: m?.Phi })]
+    this.lastT = t
+    // керування положенням: автомат лише стежить за паузою (u = 0 — спроб він не починає)
+    const fsmU = this.definition.control === 'position' ? 0 : u
+    let events = [...pre, ...this.fsm.step({ t, u: fsmU, handPresent, isolationOk, x, Phi: m?.Phi })]
     if (this.depth) events = this.afterPointerEvents(events, feedback)
 
     // кути суглобів у момент найбільшого u поточної спроби
@@ -243,7 +302,10 @@ export class ExerciseEngine {
     for (const e of events) {
       if (e.type === 'moveStart') this.peak = m ? { u, joints: m.joints } : null
       if (e.type === 'success' || e.type === 'fail') this.staircase.record(e.type === 'success')
-      if (e.type === 'paused') this.peak = null
+      if (e.type === 'paused') {
+        this.peak = null
+        this.posSamples.paused = true
+      }
       if (e.type === 'repetitionEnd') {
         const target = this.depth ? this.lockedFinger : this._target
         this.repetitions.push({ ...e.record, target, metric: this.metric, peakJoints: this.peak?.joints ?? null })
@@ -293,7 +355,7 @@ export class ExerciseEngine {
 
     const state = this.fsm.state
     const z = depth.update(handScale(P), t, state !== 'Waiting')
-    const range = this.calibration.Z ?? { xr: 0, xg: 0.1 }
+    const range = this.calibration.Z ?? { xr: 0, xg: 0.2 }
     const u = normalize(z, range)
     const { thetaR, hysteresis: h } = this.config.fsm
 
@@ -371,6 +433,12 @@ export class ExerciseEngine {
       return isolationIndex(k, delta, this.config.isolationEps) >= this.config.isolationMin[k]
     }
     return undefined
+  }
+
+  /** Точки кисті в екранних частках (дзеркально) */
+  private screenPoints(P: Vec3[], W: number, H: number): { x: number; y: number }[] {
+    const mirrored = this.options.mirrored !== false
+    return P.map((p) => ({ x: mirrored ? 1 - p.x / W : p.x / W, y: p.y / H }))
   }
 
   private handPos(P: Vec3[], W: number, H: number): { x: number; y: number } {

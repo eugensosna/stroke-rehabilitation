@@ -22,8 +22,11 @@ export interface ExerciseDefinition {
   defaultTarget: Finger | null
   /** Керуючий показник для заданого пальця */
   metric(target: Finger | null): ControlMetric
-  /** Спосіб керування: 'pointer' — вказування прямим пальцем і натискання наближенням до камери */
-  control?: 'pointer'
+  /**
+   * Спосіб керування: 'pointer' — вказування прямим пальцем і натискання наближенням до камери;
+   * 'position' — положення долоні, а повторення зараховує гра (відбитий / пропущений м'яч)
+   */
+  control?: 'pointer' | 'position'
   /** Параметри моделі, що відрізняються для цієї вправи (мають пріоритет над налаштуваннями) */
   config?: DeepPartial<ModelConfig>
 }
@@ -34,7 +37,8 @@ export function metricValue(m: FrameMetrics, metric: ControlMetric): number {
     case 'O':
       return m.O
     case 'Z':
-      // Z залежить від базової відстані s₀ (стан рушія) і з одного кадру не обчислюється
+    case 'X':
+      // Z залежить від базової відстані s₀ (стан рушія), X — від розміру кадру; обчислює рушій
       return 0
     case 'd2':
     case 'd3':
@@ -50,6 +54,7 @@ export function metricValue(m: FrameMetrics, metric: ControlMetric): number {
 export function metricInfo(metric: ControlMetric): { kind: MetricKind; direction: MetricDirection } {
   if (metric === 'O') return { kind: 'openness', direction: 'increasing' }
   if (metric === 'Z') return { kind: 'depth', direction: 'increasing' }
+  if (metric === 'X') return { kind: 'position', direction: 'increasing' }
   if (metric.startsWith('d')) return { kind: 'distance', direction: 'decreasing' }
   return { kind: 'flexion', direction: 'increasing' }
 }
@@ -117,6 +122,32 @@ export const EXERCISES: Record<ExerciseId, ExerciseDefinition> = {
     defaultTarget: null,
     metric: () => 'O',
   },
+  arkanoid: {
+    id: 'arkanoid',
+    title: 'Рух кисті ліворуч і праворуч',
+    gameTitle: 'Арканоїд',
+    instruction:
+      'Рухайте кисть ліворуч і праворуч — ракетка повторює рух долоні. Відбивайте м\'яч і розбивайте цеглинки.',
+    kind: 'position',
+    direction: 'increasing',
+    targets: null,
+    defaultTarget: null,
+    metric: () => 'X',
+    control: 'position',
+  },
+  arkade2: {
+    id: 'arkade2',
+    title: 'Рух кисті ліворуч і праворуч',
+    gameTitle: 'Арканоїд з бонусами',
+    instruction:
+      'Рухайте кисть ліворуч і праворуч — ракетка повторює рух долоні. Ловіть бонуси: великий м\'яч і кілька м\'ячів.',
+    kind: 'position',
+    direction: 'increasing',
+    targets: null,
+    defaultTarget: null,
+    metric: () => 'X',
+    control: 'position',
+  },
   isolatedFinger: {
     id: 'isolatedFinger',
     title: 'Ізольовані рухи пальців',
@@ -131,14 +162,15 @@ export const EXERCISES: Record<ExerciseId, ExerciseDefinition> = {
 }
 
 /**
- * Вправи, що є в застосунку (з іграми). «Протиставлення великого пальця» (opposition) лишається
- * в описі моделі й тестах рушія, але гри для нього зараз немає.
+ * Вправи, що є в застосунку (з іграми). «Протиставлення великого пальця» (opposition) та
+ * «Ізольовані рухи пальців» (isolatedFinger) лишаються в описі моделі й тестах рушія, але ігор для них зараз немає.
  */
 export const EXERCISE_LIST: ExerciseDefinition[] = [
   EXERCISES.pinch,
   EXERCISES.keypad,
   EXERCISES.openClose,
-  EXERCISES.isolatedFinger,
+  EXERCISES.arkanoid,
+  EXERCISES.arkade2,
 ]
 
 /** Керуючі показники вправи (для всіх можливих пальців) */
@@ -148,7 +180,7 @@ export function exerciseMetrics(def: ExerciseDefinition): ControlMetric[] {
 
 /** Типові налаштування, поки фахівець їх не змінив (або бекенд недоступний) */
 export const DEFAULT_EXERCISE_SETTINGS: ExerciseSettings = {
-  exercises: ['pinch', 'keypad', 'openClose', 'isolatedFinger'],
+  exercises: ['pinch', 'keypad', 'openClose', 'arkanoid', 'arkade2'],
   repetitionsPerSeries: 10,
   levels: { ...DEFAULT_MODEL_CONFIG.levels },
   isolationMin: { ...DEFAULT_MODEL_CONFIG.isolationMin },
