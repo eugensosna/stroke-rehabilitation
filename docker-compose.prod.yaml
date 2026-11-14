@@ -49,7 +49,7 @@ services:
       dockerfile: Dockerfile.dev
       args:
         - VITE_API_BASE_URL=${VITE_API_BASE_URL:-http://localhost:8080}
-       - VITE_GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
+        - VITE_GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
     working_dir: /app
     environment:
        - VITE_API_PROXY_TARGET=${VITE_API_BASE_URL:-http://localhost:8080}
