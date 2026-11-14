@@ -19,6 +19,7 @@ import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import ua.edu.zsea.sosna.stroke.model.auth.AuthResponse;
+import ua.edu.zsea.sosna.stroke.model.auth.GoogleLoginRequest;
 import ua.edu.zsea.sosna.stroke.model.auth.RefreshTokenRequest;
 import ua.edu.zsea.sosna.stroke.model.auth.UserApiRegisterRequest;
 import ua.edu.zsea.sosna.stroke.model.auth.UserApiRegisterRequestDto;
@@ -89,6 +90,13 @@ public class AuthentificationResource {
 		// .body(result);
 		return ResponseEntity.ok().body(result);
 
+	}
+
+	@PostMapping("/google")
+	@Transactional
+	public ResponseEntity<AuthResponse> loginWithGoogle(@RequestBody @Valid GoogleLoginRequest request) {
+		var result = userService.loginWithGoogle(request.credential());
+		return ResponseEntity.ok().body(result);
 	}
 
 	@PostMapping("/refreshToken")

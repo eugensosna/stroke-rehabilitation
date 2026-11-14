@@ -8,6 +8,11 @@ export const AuthService = {
     return response.data
   },
 
+  async loginWithGoogle(credential: string): Promise<AuthResponse> {
+    const response = await api.post<AuthResponse>('/auth/google', { credential })
+    return response.data
+  },
+
   async register(request: RegisterRequest): Promise<AuthResponse> {
     const response = await api.post<AuthResponse>('/auth/register', request)
     return response.data

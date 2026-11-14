@@ -2,6 +2,7 @@ package ua.edu.zsea.sosna.stroke.service.auth;
 
 import java.time.OffsetDateTime;
 import java.util.Map;
+import java.util.UUID;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
@@ -38,6 +39,7 @@ public class UserService {
 	private final accessTokenRepository accessTokenRepository;
 	private final jwtService jwtService;
 	private final UserDetailsService userDetailsService;
+	private final GoogleTokenVerifier googleTokenVerifier;
 
 	/*
 	 * public UserService(final UserRepository userRepository) { this.userRepository
@@ -63,6 +65,23 @@ public class UserService {
 		var result = buildAuthResponse(userDb, userDb.getEmail(), userDb.getRole().name(), false);
 
 		return result;
+	}
+
+	/**
+	 * Вхід через Google: перевіряємо ID token, знаходимо користувача за email або
+	 * створюємо нового (з випадковим паролем, яким увійти неможливо).
+	 */
+	@Transactional
+	public AuthResponse loginWithGoogle(String credential) {
+		var googleUser = googleTokenVerifier.verify(credential);
+		var existing = userRepository.findByEmail(googleUser.email());
+		if (existing.isPresent()) {
+			var userDb = existing.get();
+			return buildAuthResponse(userDb, userDb.getEmail(), userDb.getRole().name(), false);
+		}
+		var newItem = UserNewInitial.builder().email(googleUser.email()).fullname(googleUser.fullName())
+				.password(UUID.randomUUID().toString() + UUID.randomUUID()).role(Roles.USER.name()).build();
+		return register(newItem);
 	}
 
 	public AuthResponse register(UserNewInitial user) {

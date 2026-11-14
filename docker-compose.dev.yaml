@@ -23,6 +23,7 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-P4ssword!}
       SPRING_JPA_HIBERNATE_DDL_AUTO: validate
       SPRING_ALLOWED_ORIGINS: "${SPRING_ALLOWED_ORIGINS:-http://localhost:5173, http://localhost:8080}"
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
     healthcheck:
       test: ["CMD-SHELL", "wget -q --spider http://localhost:8080/actuator/health/ping || exit 1"]
       interval: 10s
@@ -39,6 +40,7 @@ services:
       dockerfile: Dockerfile.dev
       args:
         - VITE_API_BASE_URL=${VITE_API_BASE_URL:-http://localhost:8080}
+       - VITE_GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
     working_dir: /app
     environment:
        - VITE_API_PROXY_TARGET=${VITE_API_BASE_URL:-http://localhost:8080}

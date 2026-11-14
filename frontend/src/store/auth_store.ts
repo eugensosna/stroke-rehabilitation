@@ -40,6 +40,12 @@ export const AuthStore = defineStore("auth", () => {
     await saveAuthToken(response)
   }
 
+  async function loginWithGoogle(credential: string): Promise<void> {
+    const response = await AuthService.loginWithGoogle(credential)
+    sessionStorage.removeItem('userInfo')
+    await saveAuthToken(response)
+  }
+
   async function register(request: RegisterRequest): Promise<void> {
     const response = await AuthService.register(request)
     sessionStorage.removeItem('userInfo')
@@ -92,5 +98,5 @@ export const AuthStore = defineStore("auth", () => {
 
   });
 
-  return { authToken, isAuthenticated, login, register, logout, userName, refreshToken, saveAuthToken }
+  return { authToken, isAuthenticated, login, loginWithGoogle, register, logout, userName, refreshToken, saveAuthToken }
 });
